@@ -1,0 +1,409 @@
+### Oficina Mecânica API — HTTP Requests
+### Compatível com: VS Code REST Client, IntelliJ HTTP Client
+
+@base_url = http://localhost:8000
+
+# Execute o login primeiro — o token será capturado automaticamente
+@token = {{login.response.body.token}}
+
+# =============================================================================
+# AUTENTICAÇÃO
+# =============================================================================
+
+### Login — execute este primeiro para capturar o token
+# @name login
+POST {{base_url}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@oficina.com",
+  "senha": "senha123"
+}
+
+# =============================================================================
+# CLIENTES
+# =============================================================================
+
+### Cadastrar cliente (pessoa física)
+POST {{base_url}}/clientes
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "João Silva",
+  "email": "joao@email.com",
+  "telefone": "11999990000",
+  "cpf": "529.982.247-25"
+}
+
+###
+
+### Cadastrar cliente (pessoa jurídica)
+POST {{base_url}}/clientes
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Empresa XYZ Ltda.",
+  "email": "contato@xyz.com",
+  "telefone": "1130000000",
+  "cnpj": "11.222.333/0001-81"
+}
+
+###
+
+### Listar clientes
+GET {{base_url}}/clientes
+Authorization: Bearer {{token}}
+
+###
+
+### Listar clientes com busca
+GET {{base_url}}/clientes?busca=João
+Authorization: Bearer {{token}}
+
+###
+
+### Buscar cliente por ID
+GET {{base_url}}/clientes/<cliente_id>
+Authorization: Bearer {{token}}
+
+###
+
+### Atualizar cliente
+PUT {{base_url}}/clientes/<cliente_id>
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "João Silva Santos",
+  "telefone": "11988880000"
+}
+
+###
+
+### Remover cliente
+DELETE {{base_url}}/clientes/<cliente_id>
+Authorization: Bearer {{token}}
+
+# =============================================================================
+# VEÍCULOS
+# =============================================================================
+
+### Cadastrar veículo
+POST {{base_url}}/veiculos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "cliente_id": "<cliente_id>",
+  "placa": "ABC1D23",
+  "marca": "Toyota",
+  "modelo": "Corolla",
+  "ano": 2022,
+  "cor": "Prata"
+}
+
+###
+
+### Listar veículos
+GET {{base_url}}/veiculos
+Authorization: Bearer {{token}}
+
+###
+
+### Listar veículos por cliente
+GET {{base_url}}/veiculos?cliente_id=<cliente_id>
+Authorization: Bearer {{token}}
+
+###
+
+### Buscar veículo por ID
+GET {{base_url}}/veiculos/<veiculo_id>
+Authorization: Bearer {{token}}
+
+###
+
+### Atualizar veículo
+PUT {{base_url}}/veiculos/<veiculo_id>
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "cor": "Preto",
+  "ano": 2023
+}
+
+###
+
+### Remover veículo
+DELETE {{base_url}}/veiculos/<veiculo_id>
+Authorization: Bearer {{token}}
+
+# =============================================================================
+# CATÁLOGO DE SERVIÇOS
+# =============================================================================
+
+### Cadastrar serviço
+POST {{base_url}}/servicos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Troca de óleo",
+  "descricao": "Troca de óleo do motor com filtro",
+  "preco_base": "150.00",
+  "tempo_estimado_minutos": 60
+}
+
+###
+
+### Listar serviços
+GET {{base_url}}/servicos
+Authorization: Bearer {{token}}
+
+###
+
+### Listar serviços com busca
+GET {{base_url}}/servicos?busca=óleo
+Authorization: Bearer {{token}}
+
+###
+
+### Buscar serviço por ID
+GET {{base_url}}/servicos/<servico_id>
+Authorization: Bearer {{token}}
+
+###
+
+### Atualizar serviço
+PUT {{base_url}}/servicos/<servico_id>
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "preco_base": "180.00",
+  "tempo_estimado_minutos": 75
+}
+
+###
+
+### Remover serviço
+DELETE {{base_url}}/servicos/<servico_id>
+Authorization: Bearer {{token}}
+
+# =============================================================================
+# ESTOQUE (PEÇAS E INSUMOS)
+# =============================================================================
+
+### Cadastrar peça
+POST {{base_url}}/pecas
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Pastilha de freio dianteira",
+  "codigo": "PF-DIANT-001",
+  "preco_unitario": "85.00",
+  "quantidade_disponivel": 20,
+  "quantidade_minima_alerta": 5
+}
+
+###
+
+### Listar peças
+GET {{base_url}}/pecas
+Authorization: Bearer {{token}}
+
+###
+
+### Listar peças com alerta de estoque baixo
+GET {{base_url}}/pecas?alerta_estoque_baixo=true
+Authorization: Bearer {{token}}
+
+###
+
+### Listar peças com busca
+GET {{base_url}}/pecas?busca=pastilha
+Authorization: Bearer {{token}}
+
+###
+
+### Buscar peça por ID
+GET {{base_url}}/pecas/<peca_id>
+Authorization: Bearer {{token}}
+
+###
+
+### Atualizar peça
+PUT {{base_url}}/pecas/<peca_id>
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "preco_unitario": "90.00",
+  "quantidade_minima_alerta": 8
+}
+
+###
+
+### Repor estoque
+POST {{base_url}}/pecas/<peca_id>/repor-estoque
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "quantidade": 10
+}
+
+###
+
+### Remover peça
+DELETE {{base_url}}/pecas/<peca_id>
+Authorization: Bearer {{token}}
+
+# =============================================================================
+# ORDENS DE SERVIÇO — FLUXO COMPLETO
+# =============================================================================
+
+### 1. Abrir OS
+POST {{base_url}}/ordens-de-servico
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "cliente_cpf_cnpj": "52998224725",
+  "veiculo_placa": "ABC1D23",
+  "descricao_problema": "Barulho ao frear"
+}
+
+###
+
+### 2. Iniciar diagnóstico (MECANICO)
+POST {{base_url}}/ordens-de-servico/<os_id>/iniciar-diagnostico
+Authorization: Bearer {{token}}
+
+###
+
+### 3. Finalizar diagnóstico (MECANICO) — notifica Admin por e-mail
+POST {{base_url}}/ordens-de-servico/<os_id>/finalizar-diagnostico
+Authorization: Bearer {{token}}
+
+###
+
+### 4. Adicionar serviço à OS (ADMIN — nome e preço vêm do catálogo)
+POST {{base_url}}/ordens-de-servico/<os_id>/adicionar-servico
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "servico_id": "<servico_id>",
+  "observacao": "Usar óleo 5W30"
+}
+
+###
+
+### 5. Adicionar peça à OS (ADMIN — nome e preço vêm do estoque)
+POST {{base_url}}/ordens-de-servico/<os_id>/adicionar-peca
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "peca_id": "<peca_id>",
+  "quantidade": 2
+}
+
+###
+
+### 6. Gerar orçamento (ADMIN) — notifica Cliente por e-mail
+POST {{base_url}}/ordens-de-servico/<os_id>/gerar-orcamento
+Authorization: Bearer {{token}}
+
+###
+
+### 7. Acompanhar OS (rota pública — sem token)
+GET {{base_url}}/ordens-de-servico/<os_id>/acompanhar
+
+###
+
+### 8. Aprovar orçamento (rota pública — sem token)
+POST {{base_url}}/ordens-de-servico/<os_id>/aprovar-orcamento
+
+###
+
+### 8b. Recusar orçamento (rota pública — sem token)
+POST {{base_url}}/ordens-de-servico/<os_id>/recusar-orcamento
+Content-Type: application/json
+
+{
+  "motivo": "Valor acima do esperado"
+}
+
+###
+
+### 9a. ML: Itens da OS — consultar itens de serviço (MECANICO)
+GET {{base_url}}/ordens-de-servico/<os_id>/itens
+Authorization: Bearer {{token}}
+
+###
+
+### 9b. ML: Itens da OS — apenas pendentes
+GET {{base_url}}/ordens-de-servico/<os_id>/itens?pendentes=true
+Authorization: Bearer {{token}}
+
+###
+
+### 9c. Executar serviço (MECANICO — repete por item)
+POST {{base_url}}/ordens-de-servico/<os_id>/executar-servico/<item_servico_id>
+Authorization: Bearer {{token}}
+
+###
+
+### 10. Finalizar OS (ADMIN — controle de qualidade) — notifica Cliente
+POST {{base_url}}/ordens-de-servico/<os_id>/finalizar
+Authorization: Bearer {{token}}
+
+###
+
+### 11. Entregar veículo (ADMIN)
+POST {{base_url}}/ordens-de-servico/<os_id>/entregar
+Authorization: Bearer {{token}}
+
+###
+
+### Listar todas as OS
+GET {{base_url}}/ordens-de-servico
+Authorization: Bearer {{token}}
+
+###
+
+### Listar OS por status (valores: RECEBIDA, EM_DIAGNOSTICO, AGUARDANDO_ORCAMENTO,
+### AGUARDANDO_APROVACAO, EM_EXECUCAO, SERVICOS_CONCLUIDOS, FINALIZADA, ENTREGUE, CANCELADA)
+GET {{base_url}}/ordens-de-servico?status=SERVICOS_CONCLUIDOS
+Authorization: Bearer {{token}}
+
+###
+
+### Listar OS por cliente
+GET {{base_url}}/ordens-de-servico?cliente_id=<cliente_id>
+Authorization: Bearer {{token}}
+
+###
+
+### Detalhar OS
+GET {{base_url}}/ordens-de-servico/<os_id>
+Authorization: Bearer {{token}}
+
+# =============================================================================
+# RELATÓRIOS
+# =============================================================================
+
+### Tempo médio de execução por serviço
+GET {{base_url}}/relatorios/tempo-medio-servicos
+Authorization: Bearer {{token}}
+
+###
+
+### Tempo médio com filtro de período
+GET {{base_url}}/relatorios/tempo-medio-servicos?data_inicio=2026-04-01&data_fim=2026-04-30
+Authorization: Bearer {{token}}

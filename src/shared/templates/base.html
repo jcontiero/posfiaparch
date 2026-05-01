@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoTech Oficina Mecânica</title>
+  <style>
+    body { margin: 0; padding: 0; background: #f0f4f8; font-family: Arial, Helvetica, sans-serif; }
+    .wrap { max-width: 600px; margin: 32px auto; background: #fff; border-radius: 10px;
+            overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,.12); }
+    .header { background: #00838f; padding: 24px 32px; }
+    .header-inner { display: flex; align-items: center; gap: 16px; }
+    .header-text h1 { color: #fff; margin: 0; font-size: 20px; letter-spacing: .5px; }
+    .header-text p  { color: #b2ebf2; margin: 4px 0 0; font-size: 12px; }
+    .body { padding: 28px 32px; }
+    .greeting { font-size: 16px; color: #222; margin: 0 0 16px; }
+    .info-box { background: #e0f7fa; border-left: 4px solid #00BCD4; padding: 14px 18px;
+                border-radius: 4px; margin: 16px 0; font-size: 14px; color: #333; line-height: 1.8; }
+    .info-box b { color: #00696f; }
+    .section-title { font-size: 12px; font-weight: bold; color: #555; text-transform: uppercase;
+                     letter-spacing: .8px; margin: 24px 0 8px; }
+    table.items { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table.items th { background: #00BCD4; color: #fff; padding: 9px 12px; text-align: left; }
+    table.items th.right { text-align: right; }
+    table.items td { padding: 9px 12px; border-bottom: 1px solid #eee; color: #444; }
+    table.items td.right { text-align: right; font-variant-numeric: tabular-nums; }
+    table.items td.center { text-align: center; }
+    table.items tr:last-child td { border-bottom: none; }
+    .total-row td { font-weight: bold; background: #f5f5f5; color: #111; border-top: 2px solid #ddd; }
+    .btn-wrap { margin: 24px 0 8px; }
+    .btn { display: inline-block; padding: 12px 28px; color: #fff; text-decoration: none;
+           border-radius: 5px; font-weight: bold; font-size: 14px; margin-right: 8px; }
+    .btn-green { background: #43a047; }
+    .btn-red   { background: #e53935; }
+    .alert-box { background: #fff8e1; border-left: 4px solid #ffc107; padding: 12px 18px;
+                 border-radius: 4px; margin: 16px 0; font-size: 13px; color: #555; }
+    .success-box { background: #e8f5e9; border-left: 4px solid #43a047; padding: 12px 18px;
+                   border-radius: 4px; margin: 16px 0; font-size: 13px; color: #2e7d32; }
+    .footer { padding: 16px 32px; background: #fafafa; border-top: 1px solid #eee;
+              font-size: 11px; color: #aaa; text-align: center; line-height: 1.8; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- HEADER -->
+    <div class="header">
+      <div class="header-inner">
+        <div>
+          <svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="24" cy="24" r="24" fill="#00BCD4"/>
+            <rect x="10" y="22" width="28" height="5" rx="2.5" fill="#fff"/>
+            <circle cx="16" cy="34" r="4" fill="#fff"/>
+            <circle cx="32" cy="34" r="4" fill="#fff"/>
+            <polygon points="18,10 30,10 34,22 14,22" fill="#fff" opacity="0.9"/>
+            <rect x="22" y="12" width="4" height="8" rx="1" fill="#00BCD4"/>
+          </svg>
+        </div>
+        <div class="header-text">
+          <h1>AutoTech Oficina Mecânica</h1>
+          <p>{{subtitulo}}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <div class="body">
+      {{corpo}}
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      <strong>AutoTech Oficina Mecânica</strong><br>
+      Este é um e-mail automático — não responda.<br>
+      {{titulo}} · Sistema de Gestão de OS
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<p class="greeting">Olá, <b>{{nome}}</b>!</p>
+<p style="color: #444; font-size: 14px;">
+  O orçamento do seu veículo está pronto. Confira os detalhes abaixo e aprove ou recuse.
+</p>
+
+<div class="info-box">
+  <b>Veículo:</b> {{placa}}<br>
+  <b>OS:</b> {{os_id_curto}}<br>
+  <b>Valor total:</b> R$ {{valor}}
+</div>
+
+{{tabela_servicos}}
+
+{{tabela_pecas}}
+
+<table class="items" style="margin-top: 4px;">
+  <tbody>
+    <tr class="total-row">
+      <td colspan="{{colspan_total}}"><b>Total do orçamento</b></td>
+      <td class="right"><b>R$ {{valor}}</b></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="btn-wrap">
+  <a class="btn btn-green" href="#">✔ Aprovar orçamento</a>
+  <a class="btn btn-red"   href="#">✘ Recusar orçamento</a>
+</div>
+
+<div class="alert-box">
+  Ou acompanhe pelo link: /ordens-de-servico/{{os_id}}/acompanhar
+</div>
