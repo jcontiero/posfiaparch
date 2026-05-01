@@ -1,0 +1,12 @@
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+*.egg-info/
+coverage.xml
+hs_err_pid*.log
+.DS_Store
+docs/aux/entrega-fase1.html
