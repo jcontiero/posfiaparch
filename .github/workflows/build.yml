@@ -1,0 +1,71 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+      - tech_challenge
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  sonarqube:
+    name: SonarQube Cloud
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: oficina_user
+          POSTGRES_PASSWORD: oficina_pass
+          POSTGRES_DB: oficina_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest pytest-cov httpx
+          python -m pip install -e .
+
+      - name: Create test database
+        run: |
+          python -m pip install pg8000
+          python - <<'EOF'
+          import pg8000.native, time
+          for _ in range(10):
+              try:
+                  conn = pg8000.native.Connection('oficina_user', password='oficina_pass', host='localhost', port=5432, database='oficina_db')
+                  conn.run('CREATE DATABASE oficina_test')
+                  conn.close()
+                  break
+              except Exception:
+                  time.sleep(2)
+          EOF
+
+      - name: Run full test suite with coverage
+        run: python -m pytest tests/ --cov=src --cov-report=xml:coverage.xml --cov-fail-under=0 -q
+        env:
+          DATABASE_URL: postgresql+pg8000://oficina_user:oficina_pass@localhost:5432/oficina_db
+          SECRET_KEY: ci-secret-key-para-testes-32-chars-ok
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
