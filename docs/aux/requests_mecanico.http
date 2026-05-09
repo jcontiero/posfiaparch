@@ -1,0 +1,221 @@
+### ============================================================
+### OFICINA MECÂNICA — GUIA DO MECÂNICO
+### Compatível com: VS Code REST Client · IntelliJ HTTP Client
+###
+### ORDEM DE USO:
+###   1. Execute o PASSO 1 (Login)
+###   2. Execute o PASSO 2 para localizar a OS recebida
+###   3. Execute o PASSO 3 para iniciar o diagnóstico
+###   4. Execute o PASSO 4 para finalizar o diagnóstico
+###      (O Admin receberá e-mail e montará o orçamento)
+###   5. Aguarde o cliente aprovar o orçamento
+###   6. Execute o PASSO 5 para consultar os itens da OS
+###   7. Execute o PASSO 6 para executar cada serviço
+###      (Quando todos forem executados → SERVICOS_CONCLUIDOS)
+### ============================================================
+
+@base_url = http://localhost:8000
+
+# ============================================================
+# PASSO 1 — LOGIN DO MECÂNICO
+# ============================================================
+# Conta criada pelo seed_mock.py ao subir o container.
+
+# @name login_mecanico
+POST {{base_url}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "mecanico@oficina.com",
+  "senha": "senha123"
+}
+
+###
+
+@token = {{login_mecanico.response.body.$.token}}
+
+# ============================================================
+# PASSO 2 — LOCALIZAR OS AGUARDANDO DIAGNÓSTICO
+# ============================================================
+# O mecânico consulta as OS com status RECEBIDA para
+# identificar quais veículos aguardam atendimento.
+
+### Listar OS recebidas (aguardando início de diagnóstico)
+GET {{base_url}}/ordens-de-servico?status=RECEBIDA
+Authorization: Bearer {{token}}
+
+###
+
+### Listar todas as OS (visão geral da fila de trabalho)
+GET {{base_url}}/ordens-de-servico
+Authorization: Bearer {{token}}
+
+###
+# Substitua <id_da_os> pelo UUID da OS localizada no PASSO 2.
+@id_os = 89d18748-22ea-4e9f-bb50-04635b0472cf
+
+### Detalhar uma OS específica
+# Substitua o ID pelo valor retornado na listagem acima.
+# @name detalhar_os
+GET {{base_url}}/ordens-de-servico/{{id_os}}
+Authorization: Bearer {{token}}
+
+###
+
+# ============================================================
+# PASSO 3 — INICIAR DIAGNÓSTICO
+# ============================================================
+# Pré-requisito: OS com status RECEBIDA
+# Após esta ação: status → EM_DIAGNOSTICO
+# Registra data/hora de início do diagnóstico.
+
+# Substitua <id_da_os> pelo UUID da OS localizada no PASSO 2.
+@id_os = 89d18748-22ea-4e9f-bb50-04635b0472cf
+
+# @name iniciar_diagnostico
+POST {{base_url}}/ordens-de-servico/{{id_os}}/iniciar-diagnostico
+Authorization: Bearer {{token}}
+
+###
+
+### Confirmar que a OS está em diagnóstico
+GET {{base_url}}/ordens-de-servico/{{id_os}}
+Authorization: Bearer {{token}}
+
+###
+
+# ============================================================
+# PASSO 4 — FINALIZAR DIAGNÓSTICO
+# ============================================================
+# Pré-requisito: OS com status EM_DIAGNOSTICO
+# Após esta ação: status → AGUARDANDO_ORCAMENTO
+# Notificação automática: e-mail enviado ao ADMIN com o laudo
+# para que ele monte o orçamento com serviços e peças.
+#
+# O campo laudo_diagnostico é opcional. Se informado, aparece
+# no e-mail do admin e fica registrado na OS.
+
+# @name finalizar_diagnostico
+POST {{base_url}}/ordens-de-servico/{{id_os}}/finalizar-diagnostico
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "laudo_diagnostico": "Pastilha de freio dianteira desgastada, precisa ser substituída. Recomendo também verificar o disco de freio para possível desgaste. Além disso, o óleo do motor está sujo e pode ser necessário trocar em breve."
+}
+
+###
+
+### Confirmar novo status
+GET {{base_url}}/ordens-de-servico/{{id_os}}
+Authorization: Bearer {{token}}
+
+###
+
+# ============================================================
+# ⏳ AGUARDAR:
+#   1. ADMIN adiciona serviços e peças → gera orçamento
+#   2. CLIENTE aprova ou recusa o orçamento
+# Quando o cliente APROVAR, a OS passa para EM_EXECUCAO
+# e o mecânico pode iniciar os serviços.
+# ============================================================
+
+# ============================================================
+# PASSO 5 — CONSULTAR ITENS DA OS (após aprovação)
+# ============================================================
+# Pré-requisito: OS com status EM_EXECUCAO
+# Lista os itens de serviço que devem ser executados.
+
+### Ver todos os itens (serviços e peças)
+# @name listar_itens
+GET {{base_url}}/ordens-de-servico/{{id_os}}/itens
+Authorization: Bearer {{token}}
+
+###
+
+### Ver apenas itens pendentes de execução
+GET {{base_url}}/ordens-de-servico/{{id_os}}/itens?pendentes=true
+Authorization: Bearer {{token}}
+
+###
+
+# ============================================================
+# PASSO 6 — EXECUTAR OS SERVIÇOS
+# ============================================================
+# Pré-requisito: OS com status EM_EXECUCAO
+# Cada item de serviço deve ser executado individualmente.
+# O ID do item (item_id) vem da resposta do PASSO 5.
+#
+# Quando TODOS os serviços forem executados, a OS muda
+# automaticamente para SERVICOS_CONCLUIDOS e o Admin
+# recebe e-mail para fazer o controle de qualidade.
+
+### Executar serviço — item 1
+# Substitua <item_servico_id_1> pelo ID do primeiro item
+# retornado em listar_itens.response.body[0].id
+
+# @name executar_servico_1
+POST {{base_url}}/ordens-de-servico/{{id_os}}/executar-servico/bb93e63a-5304-4ccc-9e24-b2556e2eac2b
+Authorization: Bearer {{token}}
+
+###
+
+### Executar serviço — item 2
+# Substitua <item_servico_id_2> pelo ID do segundo item.
+
+# @name executar_servico_2
+POST {{base_url}}/ordens-de-servico/{{id_os}}/executar-servico/92738d40-e83b-4c28-a146-094675dd4468
+Authorization: Bearer {{token}}
+
+###
+
+### Verificar itens pendentes após cada execução
+GET {{base_url}}/ordens-de-servico/{{id_os}}/itens?pendentes=true
+Authorization: Bearer {{token}}
+
+###
+
+### Confirmar status final (deve ser SERVICOS_CONCLUIDOS
+### quando todos os serviços estiverem executados)
+GET {{base_url}}/ordens-de-servico/{{id_os}}
+Authorization: Bearer {{token}}
+
+###
+
+# ============================================================
+# CONSULTAS AUXILIARES
+# ============================================================
+
+### OS em diagnóstico (minha fila ativa)
+GET {{base_url}}/ordens-de-servico?status=EM_DIAGNOSTICO
+Authorization: Bearer {{token}}
+
+###
+
+### OS em execução
+GET {{base_url}}/ordens-de-servico?status=EM_EXECUCAO
+Authorization: Bearer {{token}}
+
+###
+
+### Consultar catálogo de serviços disponíveis
+GET {{base_url}}/servicos
+Authorization: Bearer {{token}}
+
+###
+
+### Buscar serviço específico no catálogo
+GET {{base_url}}/servicos?busca=freio
+Authorization: Bearer {{token}}
+
+###
+
+### Consultar estoque de peças
+GET {{base_url}}/pecas
+Authorization: Bearer {{token}}
+
+###
+
+### Verificar peças com estoque crítico
+GET {{base_url}}/pecas?alerta_estoque_baixo=true
+Authorization: Bearer {{token}}

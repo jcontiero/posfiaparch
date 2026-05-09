@@ -10,3 +10,5 @@ coverage.xml
 hs_err_pid*.log
 .DS_Store
 docs/aux/entrega-fase1.html
+docs/0[1-9]-*.md
+.oculto/

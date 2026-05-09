@@ -3,7 +3,7 @@ from uuid import UUID
 from src.catalogo.dominio.entidades import Servico
 
 
-class ServicoRepositorio(ABC):
+class ServicoRepositorio(ABC):  # pragma: no cover
 
     @abstractmethod
     def salvar(self, servico: Servico) -> Servico:

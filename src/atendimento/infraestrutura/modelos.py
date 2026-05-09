@@ -83,6 +83,7 @@ class OrdemDeServicoModel(Base):
     cliente_id = Column(UUID(as_uuid=True), ForeignKey("clientes.id"), nullable=False)
     veiculo_id = Column(UUID(as_uuid=True), ForeignKey("veiculos.id"), nullable=False)
     descricao_problema = Column(String, nullable=False)
+    laudo_diagnostico = Column(String, nullable=True)
     status = Column(SAEnum(StatusOS, name="status_os", native_enum=False), nullable=False, default=StatusOS.RECEBIDA)
     valor_orcamento = Column(Numeric(10, 2), nullable=True)
     criada_em = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))

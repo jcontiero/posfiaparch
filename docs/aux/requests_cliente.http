@@ -1,0 +1,121 @@
+### ============================================================
+### OFICINA MECÂNICA — GUIA DO CLIENTE
+### Compatível com: VS Code REST Client · IntelliJ HTTP Client
+###
+### IMPORTANTE: Os endpoints do cliente são PÚBLICOS.
+### Não é necessário token de autenticação.
+###
+### ORDEM DE USO:
+###   1. Use o PASSO 1 para acompanhar o status da sua OS
+###   2. Quando receber e-mail de orçamento, use o PASSO 2
+###      para APROVAR ou RECUSAR
+###   3. Continue acompanhando pelo PASSO 1 para ver
+###      quando o veículo estiver pronto
+###
+### O ID da OS é fornecido pela oficina no momento da abertura
+### do atendimento (pode estar no recibo ou e-mail recebido).
+### ============================================================
+
+@base_url = http://localhost:8000
+
+# ============================================================
+# PASSO 1 — ACOMPANHAR STATUS DA OS (rota pública)
+# ============================================================
+# Substitua <id_da_os> pelo UUID informado pela oficina.
+# Não é necessário login — qualquer pessoa com o ID acessa.
+#
+# Possíveis status:
+#   RECEBIDA              → Veículo recebido, aguardando diagnóstico
+#   EM_DIAGNOSTICO        → Mecânico realizando diagnóstico
+#   AGUARDANDO_ORCAMENTO  → Diagnóstico concluído, montando orçamento
+#   AGUARDANDO_APROVACAO  → Orçamento enviado, aguardando sua aprovação
+#   EM_EXECUCAO           → Orçamento aprovado, serviços em andamento
+#   SERVICOS_CONCLUIDOS   → Serviços finalizados, aguardando QC
+#   FINALIZADA            → Qualidade aprovada, veículo pronto para retirada
+#   ENTREGUE              → Veículo entregue
+#   CANCELADA             → OS cancelada (orçamento recusado ou outro motivo)
+
+@id_os = 89d18748-22ea-4e9f-bb50-04635b0472cf
+
+# @name acompanhar_os
+GET {{base_url}}/ordens-de-servico/{{id_os}}/acompanhar
+
+###
+
+# ============================================================
+# PASSO 2A — APROVAR O ORÇAMENTO (rota pública)
+# ============================================================
+# Pré-requisito: OS com status AGUARDANDO_APROVACAO
+# Após aprovação:
+#   - Estoque de peças é reservado automaticamente
+#   - Status muda para EM_EXECUCAO
+#   - Mecânicos iniciam os serviços
+#
+# Se alguma peça não tiver estoque suficiente,
+# a aprovação será recusada com erro 422.
+
+# @name aprovar_orcamento
+POST {{base_url}}/ordens-de-servico/{{id_os}}/aprovar-orcamento
+
+###
+
+### Confirmar que a OS passou para EM_EXECUCAO
+GET {{base_url}}/ordens-de-servico/{{id_os}}/acompanhar
+
+###
+
+# ============================================================
+# PASSO 2B — RECUSAR O ORÇAMENTO (rota pública)
+# ============================================================
+# Alternativa ao PASSO 2A — use apenas se não concordar
+# com o orçamento recebido.
+#
+# Após recusa:
+#   - Status muda para CANCELADA
+#   - Admin recebe e-mail com o motivo da recusa
+#   - O veículo será devolvido sem execução de serviços
+#
+# O campo "motivo" é obrigatório — seja específico para
+# facilitar a negociação com a oficina.
+
+# @name recusar_orcamento
+POST {{base_url}}/ordens-de-servico/{{id_os}}/recusar-orcamento
+Content-Type: application/json
+
+{
+  "motivo": "Valor do orçamento acima do esperado. Gostaria de negociar o preço das pastilhas de freio."
+}
+
+###
+
+### Confirmar que a OS foi cancelada
+GET {{base_url}}/ordens-de-servico/{{id_os}}/acompanhar
+
+###
+
+# ============================================================
+# ACOMPANHAMENTO CONTÍNUO
+# ============================================================
+# Você pode consultar o status da sua OS a qualquer momento
+# durante o processo. Recomendamos verificar após:
+#   - Receber e-mail de orçamento (verificar AGUARDANDO_APROVACAO)
+#   - Aprovar o orçamento (verificar EM_EXECUCAO)
+#   - Receber e-mail de veículo pronto (verificar FINALIZADA)
+
+### Consulta de acompanhamento — execute quantas vezes quiser
+GET {{base_url}}/ordens-de-servico/{{id_os}}/acompanhar
+
+###
+
+# ============================================================
+# RESUMO DOS STATUS QUE O CLIENTE RECEBE POR E-MAIL
+# ============================================================
+# 1. AGUARDANDO_APROVACAO → "Seu orçamento está disponível"
+#    Ação esperada: Aprovar ou recusar (PASSOs 2A ou 2B)
+#
+# 2. FINALIZADA → "Seu veículo está pronto para retirada"
+#    Ação esperada: Comparecer à oficina para retirar o veículo
+#
+# Após a retirada, o Admin registra a entrega e o status
+# passa para ENTREGUE — ciclo da OS encerrado.
+# ============================================================

@@ -232,11 +232,12 @@ class FinalizarDiagnostico:
         self.veiculo_repo = veiculo_repo
         self.cliente_repo = cliente_repo
 
-    def executar(self, os_id: UUID) -> OrdemDeServico:
+    def executar(self, os_id: UUID, laudo_diagnostico: str | None = None) -> OrdemDeServico:
         from src.shared.notificacoes import notificar_admin_diagnostico_concluido
         os = self.repo.buscar_por_id(os_id)
         if not os:
             raise ValueError(f"Ordem de serviço não encontrada: {os_id}")
+        os.laudo_diagnostico = laudo_diagnostico
         os.finalizar_diagnostico()
         resultado = self.repo.salvar(os)
         veiculo = self.veiculo_repo.buscar_por_id(os.veiculo_id)
@@ -244,7 +245,7 @@ class FinalizarDiagnostico:
         placa = veiculo.placa.valor if veiculo else str(os.veiculo_id)
         cliente_nome = cliente.nome if cliente else "—"
         notificar_admin_diagnostico_concluido(
-            str(os_id), placa, cliente_nome, os.descricao_problema
+            str(os_id), placa, cliente_nome, os.descricao_problema, laudo_diagnostico
         )
         return resultado
 

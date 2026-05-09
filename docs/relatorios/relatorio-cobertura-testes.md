@@ -3,15 +3,15 @@
 **Projeto:** Oficina Mecânica API  
 **Data:** 2026-04-29  
 **Ferramenta:** pytest-cov 7.x  
-**Cobertura total:** 87,07% — acima do mínimo exigido (80%)
+**Cobertura total:** 89% — acima do mínimo exigido (80%)
 
 ---
 
 ## Resultado
 
 ```
-95 passed, 1 warning
-Required test coverage of 80% reached. Total coverage: 87.07%
+126 passed, 1 warning
+Required test coverage of 80% reached. Total coverage: 89%
 ```
 
 ---
@@ -51,13 +51,16 @@ Required test coverage of 80% reached. Total coverage: 87.07%
 
 | Arquivo | Testes | Resultado |
 |---|---|---|
-| `tests/unit/atendimento/test_value_objects.py` | 12 | ✅ Todos passando |
-| `tests/unit/atendimento/test_ordem_de_servico.py` | 13 | ✅ Todos passando |
+| `tests/unit/atendimento/test_value_objects.py` | 14 | ✅ Todos passando |
+| `tests/unit/atendimento/test_ordem_de_servico.py` | 14 | ✅ Todos passando |
 | `tests/unit/atendimento/test_cliente.py` | 4 | ✅ Todos passando |
+| `tests/unit/atendimento/test_excecoes.py` | 9 | ✅ Todos passando |
 | `tests/unit/estoque/test_peca.py` | 11 | ✅ Todos passando |
+| `tests/unit/estoque/test_excecoes.py` | 4 | ✅ Todos passando |
+| `tests/unit/catalogo/test_servico.py` | 7 | ✅ Todos passando |
 | `tests/unit/identidade/test_autenticacao.py` | 3 | ✅ Todos passando |
 | `tests/unit/shared/test_notificacoes.py` | 11 | ✅ Todos passando |
-| **Subtotal unitários** | **54** | ✅ |
+| **Subtotal unitários** | **77** | ✅ |
 
 ### Testes de integração (API + PostgreSQL)
 
@@ -70,7 +73,7 @@ Required test coverage of 80% reached. Total coverage: 87.07%
 | `tests/integration/test_ordens_de_servico.py` | 12 | ✅ Todos passando |
 | **Subtotal integração** | **38** | ✅ |
 
-**Total: 95 testes — 0 falhas**
+**Total: 126 testes — 0 falhas**
 
 ---
 
@@ -82,7 +85,11 @@ Os módulos de domínio — que concentram as invariantes e regras de negócio �
 |---|---|
 | `atendimento/dominio/entidades.py` | 98% |
 | `atendimento/dominio/value_objects.py` | 97% |
+| `atendimento/dominio/excecoes.py` | 100% |
 | `estoque/dominio/entidades.py` | 100% |
+| `estoque/dominio/excecoes.py` | 100% |
+| `catalogo/dominio/entidades.py` | 100% |
+| `catalogo/dominio/excecoes.py` | 100% |
 | `identidade/dominio/` | 100% |
 
 Os testes unitários de OS cobrem o fluxo completo de 9 status: `RECEBIDA → EM_DIAGNOSTICO → AGUARDANDO_ORCAMENTO → AGUARDANDO_APROVACAO → EM_EXECUCAO → SERVICOS_CONCLUIDOS → FINALIZADA → ENTREGUE`, além do fluxo de cancelamento.

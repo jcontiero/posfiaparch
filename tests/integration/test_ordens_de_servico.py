@@ -291,6 +291,37 @@ def test_listar_itens_os_apenas_pendentes(client, headers_admin, setup_base):
     assert dados["itens"][0]["concluido"] is False
 
 
+def test_finalizar_diagnostico_com_laudo(client, headers_admin, setup_base):
+    """Laudo informado pelo mecânico deve ser persistido e devolvido na resposta."""
+    servico = setup_base["servico"]
+    os = client.post("/ordens-de-servico", json={
+        "cliente_cpf_cnpj": "529.982.247-25",
+        "veiculo_placa": "ABC1D23",
+        "descricao_problema": "Barulho ao frear",
+    }, headers=headers_admin).json()
+    os_id = os["id"]
+
+    client.post(f"/ordens-de-servico/{os_id}/iniciar-diagnostico", headers=headers_admin)
+    client.post(f"/ordens-de-servico/{os_id}/adicionar-servico", json={
+        "servico_id": servico["id"],
+    }, headers=headers_admin)
+
+    laudo = "Rolamento dianteiro esquerdo danificado. Pastilhas de freio com desgaste excessivo."
+    resposta = client.post(
+        f"/ordens-de-servico/{os_id}/finalizar-diagnostico",
+        json={"laudo_diagnostico": laudo},
+        headers=headers_admin,
+    )
+    assert resposta.status_code == 200
+    dados = resposta.json()
+    assert dados["status"] == "AGUARDANDO_ORCAMENTO"
+    assert dados["laudo_diagnostico"] == laudo
+
+    # Verifica que o laudo persiste ao buscar a OS novamente
+    dados_recarregados = client.get(f"/ordens-de-servico/{os_id}", headers=headers_admin).json()
+    assert dados_recarregados["laudo_diagnostico"] == laudo
+
+
 def test_gerar_orcamento_sem_servicos_retorna_422(client, headers_admin, setup_base):
     os = client.post("/ordens-de-servico", json={
         "cliente_cpf_cnpj": "529.982.247-25",

@@ -25,6 +25,7 @@ services:
       DATABASE_URL: postgresql+pg8000://oficina_user:oficina_pass@db:5432/oficina_db
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@oficina.com}
       ADMIN_SENHA: ${ADMIN_SENHA:-senha123}
+      SECRET_KEY: ${SECRET_KEY:-chave-secreta-dev-troque-em-producao-minimo-32-chars}
     depends_on:
       db:
         condition: service_healthy

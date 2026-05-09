@@ -3,7 +3,7 @@ from uuid import UUID
 from src.estoque.dominio.entidades import Peca
 
 
-class PecaRepositorio(ABC):
+class PecaRepositorio(ABC):  # pragma: no cover
 
     @abstractmethod
     def salvar(self, peca: Peca) -> Peca: pass

@@ -80,6 +80,10 @@ class AdicionarPecaRequest(BaseModel):
     quantidade: int
 
 
+class FinalizarDiagnosticoRequest(BaseModel):
+    laudo_diagnostico: str | None = None
+
+
 class RecusarOrcamentoRequest(BaseModel):
     motivo: str = ""
 
@@ -109,6 +113,7 @@ class OsResponse(BaseModel):
     cliente_id: str
     veiculo_id: str
     descricao_problema: str
+    laudo_diagnostico: str | None
     valor_orcamento: str | None
     itens_servico: list[ItemServicoResponse]
     itens_peca: list[ItemPecaResponse]
@@ -123,6 +128,7 @@ class OsResponse(BaseModel):
             cliente_id=str(os.cliente_id),
             veiculo_id=str(os.veiculo_id),
             descricao_problema=os.descricao_problema,
+            laudo_diagnostico=os.laudo_diagnostico,
             valor_orcamento=str(os.valor_orcamento) if os.valor_orcamento else None,
             itens_servico=[
                 ItemServicoResponse(id=str(i.id), servico_id=str(i.servico_id),

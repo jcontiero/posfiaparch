@@ -73,6 +73,34 @@ class TestNotificacoes:
                 descricao_problema="Barulho no motor",
             )
 
+    def test_diagnostico_concluido_com_laudo_aparece_no_email(self):
+        with patch("src.shared.notificacoes.configuracoes") as mock_cfg:
+            self._mock_cfg(mock_cfg)
+            with patch("src.shared.notificacoes.enviar_email") as mock_send:
+                notificar_admin_diagnostico_concluido(
+                    os_id="abc123",
+                    placa="ABC1D23",
+                    cliente_nome="João Silva",
+                    descricao_problema="Barulho no motor",
+                    laudo_diagnostico="Rolamento dianteiro danificado. Troca necessária.",
+                )
+                html = mock_send.call_args[1]["corpo_html"]
+                assert "Rolamento dianteiro danificado" in html
+                assert "Laudo do mecânico" in html
+
+    def test_diagnostico_concluido_sem_laudo_omite_bloco(self):
+        with patch("src.shared.notificacoes.configuracoes") as mock_cfg:
+            self._mock_cfg(mock_cfg)
+            with patch("src.shared.notificacoes.enviar_email") as mock_send:
+                notificar_admin_diagnostico_concluido(
+                    os_id="abc123",
+                    placa="ABC1D23",
+                    cliente_nome="João Silva",
+                    descricao_problema="Barulho no motor",
+                )
+                html = mock_send.call_args[1]["corpo_html"]
+                assert "Laudo do mecânico" not in html
+
     def test_orcamento_com_servicos_e_pecas(self):
         with patch("src.shared.notificacoes.configuracoes") as mock_cfg:
             self._mock_cfg(mock_cfg)

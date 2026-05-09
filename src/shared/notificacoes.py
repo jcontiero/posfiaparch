@@ -1,8 +1,11 @@
+import logging
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
 from src.config import configuracoes
+
+logger = logging.getLogger(__name__)
 
 _TEMPLATES = Path(__file__).parent / "templates"
 
@@ -32,15 +35,21 @@ def enviar_email(destinatario: str, assunto: str, corpo_html: str) -> None:
             server.starttls()
             server.login(configuracoes.smtp_user, configuracoes.smtp_password)
             server.sendmail(configuracoes.email_remetente, destinatario, msg.as_string())
-    except Exception:
-        pass
+    except Exception as e:
+        logger.error("Falha ao enviar e-mail para %s: %s", destinatario, e)
 
 
 # ── 1. Diagnóstico concluído → Admin ─────────────────────────────────────────
 
 def notificar_admin_diagnostico_concluido(
-    os_id: str, placa: str, cliente_nome: str, descricao_problema: str
+    os_id: str, placa: str, cliente_nome: str, descricao_problema: str,
+    laudo_diagnostico: str | None = None,
 ) -> None:
+    bloco_laudo = (
+        f"<p><b>Laudo do mecânico:</b></p>"
+        f"<p style='white-space:pre-wrap'>{laudo_diagnostico}</p>"
+        if laudo_diagnostico else ""
+    )
     corpo = _render(
         "diagnostico_concluido.html",
         os_id=os_id,
@@ -48,6 +57,7 @@ def notificar_admin_diagnostico_concluido(
         placa=placa,
         cliente_nome=cliente_nome,
         descricao_problema=descricao_problema,
+        bloco_laudo=bloco_laudo,
     )
     enviar_email(
         destinatario=configuracoes.email_admin,

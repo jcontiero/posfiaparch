@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from src.identidade.dominio.entidades import Usuario
 
 
-class UsuarioRepositorio(ABC):
+class UsuarioRepositorio(ABC):  # pragma: no cover
 
     @abstractmethod
     def buscar_por_email(self, email: str) -> Usuario | None:

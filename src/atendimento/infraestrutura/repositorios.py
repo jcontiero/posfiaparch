@@ -111,13 +111,14 @@ class OrdemDeServicoRepositorioImpl(OrdemDeServicoRepositorio):
         if m:
             m.status = os.status
             m.valor_orcamento = os.valor_orcamento
+            m.laudo_diagnostico = os.laudo_diagnostico
             m.atualizada_em = os.atualizada_em
             self._sincronizar_itens(m, os)
         else:
             m = OrdemDeServicoModel(
                 id=os.id, cliente_id=os.cliente_id, veiculo_id=os.veiculo_id,
-                descricao_problema=os.descricao_problema, status=os.status,
-                criada_em=os.criada_em, atualizada_em=os.atualizada_em,
+                descricao_problema=os.descricao_problema, laudo_diagnostico=os.laudo_diagnostico,
+                status=os.status, criada_em=os.criada_em, atualizada_em=os.atualizada_em,
             )
             self.db.add(m)
             self.db.flush()
@@ -198,7 +199,8 @@ class OrdemDeServicoRepositorioImpl(OrdemDeServicoRepositorio):
         ]
         return OrdemDeServico(
             id=m.id, cliente_id=m.cliente_id, veiculo_id=m.veiculo_id,
-            descricao_problema=m.descricao_problema, status=m.status,
+            descricao_problema=m.descricao_problema, laudo_diagnostico=m.laudo_diagnostico,
+            status=m.status,
             valor_orcamento=Decimal(str(m.valor_orcamento)) if m.valor_orcamento else None,
             criada_em=m.criada_em, atualizada_em=m.atualizada_em,
             itens_servico=itens_servico, itens_peca=itens_peca,

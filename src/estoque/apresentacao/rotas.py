@@ -43,6 +43,14 @@ def listar(busca: str | None = None, alerta_estoque_baixo: bool = False,
     return [PecaResponse.from_domain(p) for p in pecas]
 
 
+@router.get("/codigo/{codigo}", response_model=PecaResponse, summary="Buscar Peca por Codigo")
+def buscar_por_codigo(codigo: str, repo: RepoDep, _: AuthDep):
+    peca = repo.buscar_por_codigo(codigo)
+    if not peca:
+        raise HTTPException(404, f"Peça com código '{codigo}' não encontrada")
+    return PecaResponse.from_domain(peca)
+
+
 @router.get("/{id}", response_model=PecaResponse, summary="Buscar Peca")
 def buscar(id: UUID, repo: RepoDep, _: AuthDep):
     try:

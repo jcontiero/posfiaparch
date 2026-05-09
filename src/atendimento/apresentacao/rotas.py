@@ -1,6 +1,6 @@
 from typing import Annotated
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy.orm import Session
 from src.shared.dependencias import get_db, get_usuario_atual, require_admin, require_mecanico
 from src.atendimento.infraestrutura.repositorios import (
@@ -25,7 +25,7 @@ from src.atendimento.dominio.excecoes import (
 from src.atendimento.apresentacao.schemas import (
     CadastrarClienteRequest, AtualizarClienteRequest, ClienteResponse,
     CadastrarVeiculoRequest, AtualizarVeiculoRequest, VeiculoResponse,
-    AbrirOsRequest, AdicionarServicoRequest, AdicionarPecaRequest,
+    AbrirOsRequest, FinalizarDiagnosticoRequest, AdicionarServicoRequest, AdicionarPecaRequest,
     RecusarOrcamentoRequest, OsResponse, AcompanharOsResponse, ItensOsResponse,
 )
 from src.atendimento.dominio.value_objects import StatusOS
@@ -46,7 +46,7 @@ def _repos(db: DBDep):
 # ── Clientes ──────────────────────────────────────────────────────────────────
 
 @router.post("/clientes", response_model=ClienteResponse, status_code=201)
-def cadastrar_cliente(body: CadastrarClienteRequest, db: DBDep, _: AuthDep):
+def cadastrar_cliente(body: CadastrarClienteRequest, db: DBDep, _: MecanicoDep):
     try:
         cliente = CadastrarCliente(ClienteRepositorioImpl(db)).executar(**body.model_dump())
         return ClienteResponse.from_domain(cliente)
@@ -55,13 +55,13 @@ def cadastrar_cliente(body: CadastrarClienteRequest, db: DBDep, _: AuthDep):
 
 
 @router.get("/clientes", response_model=list[ClienteResponse])
-def listar_clientes(busca: str | None = None, db: DBDep = None, _: AuthDep = None):
+def listar_clientes(busca: str | None = None, db: DBDep = None, _: MecanicoDep = None):
     clientes = ListarClientes(ClienteRepositorioImpl(db)).executar(busca)
     return [ClienteResponse.from_domain(c) for c in clientes]
 
 
 @router.get("/clientes/{id}", response_model=ClienteResponse)
-def buscar_cliente(id: UUID, db: DBDep, _: AuthDep):
+def buscar_cliente(id: UUID, db: DBDep, _: MecanicoDep):
     try:
         return ClienteResponse.from_domain(BuscarCliente(ClienteRepositorioImpl(db)).executar(id))
     except ClienteNaoEncontradoError as e:
@@ -69,7 +69,7 @@ def buscar_cliente(id: UUID, db: DBDep, _: AuthDep):
 
 
 @router.put("/clientes/{id}", response_model=ClienteResponse)
-def atualizar_cliente(id: UUID, body: AtualizarClienteRequest, db: DBDep, _: AuthDep):
+def atualizar_cliente(id: UUID, body: AtualizarClienteRequest, db: DBDep, _: MecanicoDep):
     try:
         cliente = AtualizarCliente(ClienteRepositorioImpl(db)).executar(
             id, **body.model_dump(exclude_none=True))
@@ -79,7 +79,7 @@ def atualizar_cliente(id: UUID, body: AtualizarClienteRequest, db: DBDep, _: Aut
 
 
 @router.delete("/clientes/{id}", status_code=204)
-def remover_cliente(id: UUID, db: DBDep, _: AuthDep):
+def remover_cliente(id: UUID, db: DBDep, _: AdminDep):
     try:
         RemoverCliente(ClienteRepositorioImpl(db), OrdemDeServicoRepositorioImpl(db)).executar(id)
     except ClienteNaoEncontradoError as e:
@@ -91,7 +91,7 @@ def remover_cliente(id: UUID, db: DBDep, _: AuthDep):
 # ── Veículos ──────────────────────────────────────────────────────────────────
 
 @router.post("/veiculos", response_model=VeiculoResponse, status_code=201)
-def cadastrar_veiculo(body: CadastrarVeiculoRequest, db: DBDep, _: AuthDep):
+def cadastrar_veiculo(body: CadastrarVeiculoRequest, db: DBDep, _: MecanicoDep):
     try:
         veiculo = CadastrarVeiculo(VeiculoRepositorioImpl(db),
                                    ClienteRepositorioImpl(db)).executar(
@@ -105,13 +105,13 @@ def cadastrar_veiculo(body: CadastrarVeiculoRequest, db: DBDep, _: AuthDep):
 
 
 @router.get("/veiculos", response_model=list[VeiculoResponse])
-def listar_veiculos(cliente_id: UUID | None = None, db: DBDep = None, _: AuthDep = None):
+def listar_veiculos(cliente_id: UUID | None = None, db: DBDep = None, _: MecanicoDep = None):
     veiculos = ListarVeiculos(VeiculoRepositorioImpl(db)).executar(cliente_id)
     return [VeiculoResponse.from_domain(v) for v in veiculos]
 
 
 @router.get("/veiculos/{id}", response_model=VeiculoResponse)
-def buscar_veiculo(id: UUID, db: DBDep, _: AuthDep):
+def buscar_veiculo(id: UUID, db: DBDep, _: MecanicoDep):
     try:
         return VeiculoResponse.from_domain(BuscarVeiculo(VeiculoRepositorioImpl(db)).executar(id))
     except VeiculoNaoEncontradoError as e:
@@ -119,7 +119,7 @@ def buscar_veiculo(id: UUID, db: DBDep, _: AuthDep):
 
 
 @router.put("/veiculos/{id}", response_model=VeiculoResponse)
-def atualizar_veiculo(id: UUID, body: AtualizarVeiculoRequest, db: DBDep, _: AuthDep):
+def atualizar_veiculo(id: UUID, body: AtualizarVeiculoRequest, db: DBDep, _: MecanicoDep):
     try:
         v = AtualizarVeiculo(VeiculoRepositorioImpl(db)).executar(
             id, **body.model_dump(exclude_none=True))
@@ -129,7 +129,7 @@ def atualizar_veiculo(id: UUID, body: AtualizarVeiculoRequest, db: DBDep, _: Aut
 
 
 @router.delete("/veiculos/{id}", status_code=204)
-def remover_veiculo(id: UUID, db: DBDep, _: AuthDep):
+def remover_veiculo(id: UUID, db: DBDep, _: AdminDep):
     try:
         RemoverVeiculo(VeiculoRepositorioImpl(db), OrdemDeServicoRepositorioImpl(db)).executar(id)
     except VeiculoNaoEncontradoError as e:
@@ -200,12 +200,14 @@ def iniciar_diagnostico(id: UUID, db: DBDep, _: MecanicoDep):
 
 
 @router.post("/ordens-de-servico/{id}/finalizar-diagnostico", response_model=OsResponse)
-def finalizar_diagnostico(id: UUID, db: DBDep, _: MecanicoDep):
+def finalizar_diagnostico(id: UUID, db: DBDep, _: MecanicoDep,
+                          body: FinalizarDiagnosticoRequest | None = Body(default=None)):
     try:
+        laudo = body.laudo_diagnostico if body else None
         return OsResponse.from_domain(
             FinalizarDiagnostico(OrdemDeServicoRepositorioImpl(db),
                                  VeiculoRepositorioImpl(db),
-                                 ClienteRepositorioImpl(db)).executar(id))
+                                 ClienteRepositorioImpl(db)).executar(id, laudo))
     except TransicaoInvalidaError as e:
         raise HTTPException(422, str(e))
     except ValueError as e:

@@ -67,3 +67,15 @@ def test_remover_peca(client, headers_admin):
     peca = _cadastrar_peca(client, headers_admin)
     resposta = client.delete(f"/pecas/{peca['id']}", headers=headers_admin)
     assert resposta.status_code == 204
+
+
+def test_buscar_peca_por_codigo(client, headers_admin):
+    _cadastrar_peca(client, headers_admin, codigo="PF-001")
+    resposta = client.get("/pecas/codigo/PF-001", headers=headers_admin)
+    assert resposta.status_code == 200
+    assert resposta.json()["codigo"] == "PF-001"
+
+
+def test_buscar_peca_por_codigo_inexistente(client, headers_admin):
+    resposta = client.get("/pecas/codigo/NAO-EXISTE", headers=headers_admin)
+    assert resposta.status_code == 404

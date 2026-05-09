@@ -4,7 +4,7 @@ from src.atendimento.dominio.entidades import Cliente, Veiculo, OrdemDeServico
 from src.atendimento.dominio.value_objects import StatusOS
 
 
-class ClienteRepositorio(ABC):
+class ClienteRepositorio(ABC):  # pragma: no cover
 
     @abstractmethod
     def salvar(self, cliente: Cliente) -> Cliente: pass
@@ -25,7 +25,7 @@ class ClienteRepositorio(ABC):
     def remover(self, id: UUID) -> None: pass
 
 
-class VeiculoRepositorio(ABC):
+class VeiculoRepositorio(ABC):  # pragma: no cover
 
     @abstractmethod
     def salvar(self, veiculo: Veiculo) -> Veiculo: pass
@@ -43,7 +43,7 @@ class VeiculoRepositorio(ABC):
     def remover(self, id: UUID) -> None: pass
 
 
-class OrdemDeServicoRepositorio(ABC):
+class OrdemDeServicoRepositorio(ABC):  # pragma: no cover
 
     @abstractmethod
     def salvar(self, os: OrdemDeServico) -> OrdemDeServico: pass

@@ -1,0 +1,544 @@
+### ============================================================
+### OFICINA MECÂNICA — GUIA DO ADMINISTRADOR / ATENDENTE
+### Compatível com: VS Code REST Client · IntelliJ HTTP Client
+###
+### ORDEM DE USO:
+###
+###   PRÉ-SETUP (feito uma vez — catálogo e estoque já existem em prod)
+###     Execute o LOGIN e aguarde o token
+###     Execute o PRÉ-SETUP A para cadastrar serviços no catálogo
+###     Execute o PRÉ-SETUP B para cadastrar peças no estoque
+###
+###   FLUXO DE ATENDIMENTO (a história começa aqui)
+###     PASSO 1 — Cadastrar cliente
+###     PASSO 2 — Cadastrar veículo
+###     PASSO 3 — Abrir OS  → status: RECEBIDA
+###     ⏳ Aguarde o MECÂNICO concluir o diagnóstico
+###     PASSO 4 — Adicionar serviços à OS
+###     PASSO 5 — Adicionar peças à OS
+###     PASSO 6 — Gerar orçamento  → status: AGUARDANDO_APROVACAO
+###     ⏳ Aguarde o CLIENTE aprovar o orçamento
+###     PASSO 7 — Finalizar OS  → status: FINALIZADA
+###     PASSO 8 — Entregar veículo  → status: ENTREGUE
+###     PASSO 9 — Consultar relatórios
+### ============================================================
+
+@base_url = http://localhost:8000
+
+# ============================================================
+# PASSO 1 — LOGIN DO ADMINISTRADOR
+# ============================================================
+# Credenciais criadas pelo seed.py ao subir o container.
+# Capture o token retornado — ele é necessário em todos
+# os demais passos desta sessão.
+
+# @name login_admin
+POST {{base_url}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@oficina.com",
+  "senha": "senha123"
+}
+
+###
+
+# Após executar o login, copie o valor de "token" e
+# substitua abaixo (ou o REST Client captura automaticamente).
+@token = {{login_admin.response.body.$.token}}
+
+# ============================================================
+# PRÉ-SETUP A — CADASTRAR CATÁLOGO DE SERVIÇOS
+# ============================================================
+# Feito uma vez pelo Admin. Nome e preço fixados aqui são
+# usados na OS sem re-digitação pelo atendente.
+
+# @name criar_servico_troca_oleo
+POST {{base_url}}/servicos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Troca de óleo",
+  "descricao": "Troca de óleo do motor com filtro de óleo e dreno do reservatório",
+  "preco_base": "150.00",
+  "tempo_estimado_minutos": 60
+}
+
+###
+
+# @name criar_servico_freios
+POST {{base_url}}/servicos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Revisão de freios",
+  "descricao": "Inspeção, limpeza e substituição de pastilhas e discos de freio",
+  "preco_base": "280.00",
+  "tempo_estimado_minutos": 120
+}
+
+###
+
+# @name criar_servico_alinhamento
+POST {{base_url}}/servicos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Alinhamento e balanceamento",
+  "descricao": "Alinhamento direcional quatro rodas e balanceamento de pneus",
+  "preco_base": "120.00",
+  "tempo_estimado_minutos": 90
+}
+
+###
+
+### Listar todos os serviços cadastrados
+GET {{base_url}}/servicos
+Authorization: Bearer {{token}}
+
+###
+
+### Buscar serviço por nome (útil antes de editar)
+GET {{base_url}}/servicos?busca=freios
+Authorization: Bearer {{token}}
+
+###
+
+### Atualizar preço de um serviço (substitua o ID)
+# ID obtido na resposta de criar_servico_freios — campo "id"
+
+PUT {{base_url}}/servicos/{{criar_servico_freios.response.body.$.id}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "preco_base": "320.00",
+  "tempo_estimado_minutos": 130
+}
+
+###
+
+# ============================================================
+# PRÉ-SETUP B — CADASTRAR PEÇAS E INSUMOS NO ESTOQUE
+# ============================================================
+# Código (SKU) deve ser único por peça.
+# quantidade_minima_alerta dispara alerta de reposição.
+
+# @name criar_peca_pastilha
+POST {{base_url}}/pecas
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Pastilha de freio dianteira",
+  "codigo": "PF-DIANT-001",
+  "preco_unitario": "85.00",
+  "quantidade_disponivel": 20,
+  "quantidade_minima_alerta": 5
+}
+
+###
+
+# @name criar_peca_oleo
+POST {{base_url}}/pecas
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Óleo de motor 5W30 sintético (1L)",
+  "codigo": "OL-5W30-001",
+  "preco_unitario": "32.00",
+  "quantidade_disponivel": 50,
+  "quantidade_minima_alerta": 10
+}
+
+###
+
+# @name criar_peca_filtro
+POST {{base_url}}/pecas
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Filtro de óleo universal",
+  "codigo": "FO-UNIV-001",
+  "preco_unitario": "25.00",
+  "quantidade_disponivel": 30,
+  "quantidade_minima_alerta": 8
+}
+
+###
+
+### Listar todas as peças em estoque
+GET {{base_url}}/pecas
+Authorization: Bearer {{token}}
+
+###
+
+### Verificar peças com alerta de estoque baixo
+GET {{base_url}}/pecas?alerta_estoque_baixo=true
+Authorization: Bearer {{token}}
+
+###
+
+# @name buscar_peca_pastilha
+GET {{base_url}}/pecas/codigo/PF-DIANT-001
+Authorization: Bearer {{token}}
+
+###
+
+# @name buscar_peca_oleo
+GET {{base_url}}/pecas/codigo/OL-5W30-001
+Authorization: Bearer {{token}}
+
+###
+
+# @name buscar_peca_filtro
+GET {{base_url}}/pecas/codigo/FO-UNIV-001
+Authorization: Bearer {{token}}
+
+###
+
+### Repor estoque de uma peça
+POST {{base_url}}/pecas/{{buscar_peca_pastilha.response.body.$.id}}/repor-estoque
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "quantidade": 15
+}
+
+###
+
+# ============================================================
+# PASSO 1 — CADASTRAR CLIENTE  ← a história começa aqui
+# ============================================================
+# Use "cpf" OU "cnpj" — nunca os dois juntos.
+# CPF/CNPJ aceitos com ou sem formatação.
+
+# DEMO — CPF com dígito verificador errado → 422 do domínio (não do banco)
+# O Value Object CPF rejeita na construção, antes de qualquer query.
+# @name criar_cliente_cpf_invalido
+POST {{base_url}}/clientes
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Carlos Eduardo Mendes",
+  "email": "carlos.mendes@email.com",
+  "telefone": "11987654321",
+  "cpf": "524.762.251-26"
+}
+
+###
+
+# @name criar_cliente_pf
+POST {{base_url}}/clientes
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Carlos Eduardo Mendes",
+  "email": "carlos.mendes@email.com",
+  "telefone": "11987654321",
+  "cpf": "123.456.789-09"
+}
+
+###
+
+### Exemplo: cadastrar cliente pessoa jurídica
+# @name criar_cliente_pj
+POST {{base_url}}/clientes
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Transportes Silva Ltda.",
+  "email": "frota@transportessilva.com.br",
+  "telefone": "1132000000",
+  "cnpj": "11.222.333/0001-81"
+}
+
+###
+
+### Listar clientes cadastrados
+GET {{base_url}}/clientes
+Authorization: Bearer {{token}}
+
+###
+
+### Buscar cliente pelo nome
+GET {{base_url}}/clientes?busca=Carlos
+Authorization: Bearer {{token}}
+
+###
+
+### Atualizar dados do cliente
+
+PUT {{base_url}}/clientes/{{criar_cliente_pf.response.body.$.id}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Carlos Eduardo Mendes",
+  "telefone": "11912345678"
+}
+
+###
+
+# ============================================================
+# PASSO 2 — CADASTRAR VEÍCULO
+# ============================================================
+# Placa no formato Mercosul (ABC1D23) ou antigo (ABC1234).
+# O "cliente_id" vincula o veículo ao dono.
+
+# @name criar_veiculo
+POST {{base_url}}/veiculos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "cliente_id": "{{criar_cliente_pf.response.body.$.id}}",
+  "placa": "BRA2E19",
+  "marca": "Volkswagen",
+  "modelo": "Polo",
+  "ano": 2023,
+  "cor": "Branco"
+}
+
+###
+
+### Listar veículos do cliente
+GET {{base_url}}/veiculos?cliente_id={{criar_cliente_pf.response.body.$.id}}
+Authorization: Bearer {{token}}
+
+###
+
+# ============================================================
+# PASSO 3 — ABRIR ORDEM DE SERVIÇO
+# ============================================================
+# Identificação por CPF/CNPJ (sem formatação) + placa.
+# O sistema localiza cliente e veículo automaticamente.
+# Status inicial: RECEBIDA
+
+# @name abrir_os
+POST {{base_url}}/ordens-de-servico
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "cliente_cpf_cnpj": "12345678909",
+  "veiculo_placa": "BRA2E19",
+  "descricao_problema": "Cliente relata barulho metálico ao frear e pedal de freio fundo"
+}
+
+###
+
+### Listar OS com status RECEBIDA (aguardando mecânico)
+GET {{base_url}}/ordens-de-servico?status=RECEBIDA
+Authorization: Bearer {{token}}
+
+###
+
+### Detalhar a OS recém-aberta
+
+GET {{base_url}}/ordens-de-servico/{{abrir_os.response.body.$.id}}
+Authorization: Bearer {{token}}
+
+###
+
+# ============================================================
+# ⏳ AGUARDAR: O MECÂNICO DEVE INICIAR E FINALIZAR O DIAGNÓSTICO
+# Veja o arquivo requests_mecanico.http — PASSOs 2 e 3.
+# Quando o mecânico finalizar, você receberá um e-mail de notificação
+# e a OS estará com status AGUARDANDO_ORCAMENTO.
+# ============================================================
+
+# ============================================================
+# PASSO 4 — ADICIONAR SERVIÇOS À OS (após diagnóstico)
+# ============================================================
+# Status necessário: AGUARDANDO_ORCAMENTO
+# Preço é fixado do catálogo — Admin não digita valor.
+
+
+POST {{base_url}}/ordens-de-servico/{{abrir_os.response.body.$.id}}/adicionar-servico
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "servico_id": "{{criar_servico_freios.response.body.$.id}}",
+  "observacao": "Substituir pastilhas dianteiras e traseiras"
+}
+
+###
+
+
+POST {{base_url}}/ordens-de-servico/{{abrir_os.response.body.$.id}}/adicionar-servico
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "servico_id": "{{criar_servico_troca_oleo.response.body.$.id}}",
+  "observacao": "Usar óleo 5W30 sintético"
+}
+
+###
+
+# ============================================================
+# PASSO 5 — ADICIONAR PEÇAS À OS
+# ============================================================
+# Reserva de estoque acontece na APROVAÇÃO do orçamento,
+# não na adição da peça. A aprovação falha se não houver estoque.
+
+# @name buscar_peca_pastilha
+GET {{base_url}}/pecas/codigo/PF-DIANT-001
+Authorization: Bearer {{token}}
+
+###
+
+# @name buscar_peca_oleo
+GET {{base_url}}/pecas/codigo/OL-5W30-001
+Authorization: Bearer {{token}}
+
+###
+
+# @name buscar_peca_filtro
+GET {{base_url}}/pecas/codigo/FO-UNIV-001
+Authorization: Bearer {{token}}
+
+###
+
+POST {{base_url}}/ordens-de-servico/{{abrir_os.response.body.$.id}}/adicionar-peca
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "peca_id": "{{buscar_peca_pastilha.response.body.$.id}}",
+  "quantidade": 4
+}
+
+###
+
+
+POST {{base_url}}/ordens-de-servico/{{abrir_os.response.body.$.id}}/adicionar-peca
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "peca_id": "{{buscar_peca_oleo.response.body.$.id}}",
+  "quantidade": 4
+}
+
+###
+
+
+POST {{base_url}}/ordens-de-servico/{{abrir_os.response.body.$.id}}/adicionar-peca
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "peca_id": "{{buscar_peca_filtro.response.body.$.id}}",
+  "quantidade": 1
+}
+
+###
+
+# ============================================================
+# PASSO 6 — GERAR ORÇAMENTO
+# ============================================================
+# Congela os preços, calcula total e envia e-mail ao cliente.
+# Status passa para: AGUARDANDO_APROVACAO
+
+POST {{base_url}}/ordens-de-servico/{{abrir_os.response.body.$.id}}/gerar-orcamento
+Authorization: Bearer {{token}}
+
+###
+
+### Verificar OS com orçamento gerado
+GET {{base_url}}/ordens-de-servico/{{abrir_os.response.body.$.id}}
+Authorization: Bearer {{token}}
+
+###
+
+# ============================================================
+# ⏳ AGUARDAR: O CLIENTE DEVE APROVAR OU RECUSAR O ORÇAMENTO
+# Veja o arquivo requests_cliente.http.
+# Se aprovado → status: EM_EXECUCAO
+# Se recusado → status: CANCELADA (você recebe e-mail)
+# ============================================================
+
+# ============================================================
+# PASSO 7 — FINALIZAR OS (controle de qualidade)
+# ============================================================
+# Executado após o mecânico concluir TODOS os serviços.
+# Status necessário: SERVICOS_CONCLUIDOS
+# Envia e-mail ao cliente informando que o veículo está pronto.
+
+POST {{base_url}}/ordens-de-servico/{{abrir_os.response.body.$.id}}/finalizar
+Authorization: Bearer {{token}}
+
+###
+
+# ============================================================
+# PASSO 8 — REGISTRAR ENTREGA DO VEÍCULO
+# ============================================================
+# Último passo. Status final: ENTREGUE
+# Registra a data de entrega efetiva.
+
+POST {{base_url}}/ordens-de-servico/{{abrir_os.response.body.$.id}}/entregar
+Authorization: Bearer {{token}}
+
+###
+
+# ============================================================
+# PASSO 9 — CONSULTAR RELATÓRIOS
+# ============================================================
+
+### Tempo médio de execução por serviço (geral)
+GET {{base_url}}/relatorios/tempo-medio-servicos
+Authorization: Bearer {{token}}
+
+###
+
+### Tempo médio com filtro de período (AAAA-MM-DD)
+GET {{base_url}}/relatorios/tempo-medio-servicos?data_inicio=2026-05-01&data_fim=2026-05-31
+Authorization: Bearer {{token}}
+
+###
+
+# ============================================================
+# CONSULTAS AUXILIARES (uso a qualquer momento)
+# ============================================================
+
+### Todas as OS em aberto
+GET {{base_url}}/ordens-de-servico
+Authorization: Bearer {{token}}
+
+###
+
+### OS por status (RECEBIDA | EM_DIAGNOSTICO | AGUARDANDO_ORCAMENTO
+###               | AGUARDANDO_APROVACAO | EM_EXECUCAO
+###               | SERVICOS_CONCLUIDOS | FINALIZADA | ENTREGUE | CANCELADA)
+GET {{base_url}}/ordens-de-servico?status=EM_EXECUCAO
+Authorization: Bearer {{token}}
+
+###
+
+### OS por cliente
+GET {{base_url}}/ordens-de-servico?cliente_id={{criar_cliente_pf.response.body.$.id}}
+Authorization: Bearer {{token}}
+
+###
+
+### Excluir cliente (apenas Admin — use com cautela)
+DELETE {{base_url}}/clientes/{{criar_cliente_pf.response.body.$.id}}
+Authorization: Bearer {{token}}
+
+###
+
+### Excluir veículo (apenas Admin — use com cautela)
+DELETE {{base_url}}/veiculos/{{criar_veiculo.response.body.$.id}}
+Authorization: Bearer {{token}}

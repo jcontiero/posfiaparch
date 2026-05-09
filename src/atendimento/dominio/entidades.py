@@ -71,6 +71,7 @@ class OrdemDeServico:
     descricao_problema: str
     status: StatusOS = StatusOS.RECEBIDA
     valor_orcamento: Decimal | None = None
+    laudo_diagnostico: str | None = None
     criada_em: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     atualizada_em: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     itens_servico: list[ItemServico] = field(default_factory=list)

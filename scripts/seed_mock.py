@@ -57,10 +57,10 @@ def criar_mock():
 
         # ── Clientes ──────────────────────────────────────────────────────────
         c1 = ClienteModel(id=uuid4(), nome="Joao Silva", cpf="52998224725", cnpj=None, email="joao@email.com", telefone="11999990000")
-        c2 = ClienteModel(id=uuid4(), nome="Maria Santos", cpf="21932463007", cnpj=None, email="maria@email.com", telefone="11988880000")
+        c2 = ClienteModel(id=uuid4(), nome="Maria Santos", cpf="21932463003", cnpj=None, email="maria@email.com", telefone="11988880000")
         c3 = ClienteModel(id=uuid4(), nome="Transportes ABC Ltda.", cpf=None, cnpj="11222333000181", email="frota@abc.com", telefone="1130001234")
-        c4 = ClienteModel(id=uuid4(), nome="Carlos Ferreira", cpf="87748241079", cnpj=None, email="carlos@email.com", telefone="11977770000")
-        c5 = ClienteModel(id=uuid4(), nome="Ana Lima", cpf="34644762060", cnpj=None, email="ana@email.com", telefone="11966660000")
+        c4 = ClienteModel(id=uuid4(), nome="Carlos Ferreira", cpf="87748241040", cnpj=None, email="carlos@email.com", telefone="11977770000")
+        c5 = ClienteModel(id=uuid4(), nome="Ana Lima", cpf="34644762008", cnpj=None, email="ana@email.com", telefone="11966660000")
         for c in [c1, c2, c3, c4, c5]:
             db.add(c)
 
