@@ -41,6 +41,18 @@ resource "helm_release" "postgres" {
       value = "false"
     },
     {
+      name  = "volumePermissions.enabled"
+      value = "false"
+    },
+    {
+      name  = "primary.readinessProbe.enabled"
+      value = "false"
+    },
+    {
+      name  = "primary.livenessProbe.enabled"
+      value = "false"
+    },
+    {
       name  = "primary.resources.requests.memory"
       value = "256Mi"
     },
