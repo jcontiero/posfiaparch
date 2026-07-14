@@ -1,10 +1,8 @@
-import httpx
-
-base_url = "http://localhost:8000"
-
+from fastapi.testclient import TestClient
+from src.main import app
 
 def test():
-    with httpx.Client(base_url=base_url) as client:
+    with TestClient(app) as client:
         # 1. Login
         response = client.post(
             "/auth/login",
