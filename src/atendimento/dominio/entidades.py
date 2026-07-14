@@ -3,12 +3,18 @@ from uuid import UUID, uuid4
 from decimal import Decimal
 from datetime import datetime, timezone
 
-from src.atendimento.dominio.value_objects import StatusOS, TRANSICOES_VALIDAS, CPF, CNPJ, Placa
+from src.atendimento.dominio.value_objects import (
+    StatusOS,
+    TRANSICOES_VALIDAS,
+    CPF,
+    CNPJ,
+    Placa,
+)
 from src.atendimento.dominio.excecoes import (
     TransicaoInvalidaError,
     OsSemServicosError,
-    ServicosNaoConcluidos,
     ItemNaoEncontradoError,
+    DocumentoClienteInvalidoError,
 )
 
 
@@ -25,7 +31,7 @@ class Cliente:
         tem_cpf = self.cpf is not None
         tem_cnpj = self.cnpj is not None
         if tem_cpf == tem_cnpj:
-            raise ValueError("Cliente deve ter CPF ou CNPJ — nunca ambos ou nenhum")
+            raise DocumentoClienteInvalidoError()
 
 
 @dataclass
@@ -124,8 +130,8 @@ class OrdemDeServico:
     def gerar_orcamento(self) -> None:
         if not self.itens_servico:
             raise OsSemServicosError()
-        total = sum(i.preco_unitario for i in self.itens_servico)
-        total += sum(i.preco_total for i in self.itens_peca)
+        total = sum((i.preco_unitario for i in self.itens_servico), Decimal("0"))
+        total += sum((i.preco_total for i in self.itens_peca), Decimal("0"))
         self.valor_orcamento = total
         self._transicionar_para(StatusOS.AGUARDANDO_APROVACAO)
 
@@ -133,7 +139,10 @@ class OrdemDeServico:
         self._transicionar_para(StatusOS.EM_EXECUCAO)
 
     def recusar_orcamento(self) -> None:
-        self._transicionar_para(StatusOS.CANCELADA)
+        self._transicionar_para(StatusOS.EM_DIAGNOSTICO)
+
+    def atualizar_status(self, novo_status: StatusOS) -> None:
+        self._transicionar_para(novo_status)
 
     def executar_servico(self, item_id: UUID) -> bool:
         item = next((i for i in self.itens_servico if i.id == item_id), None)

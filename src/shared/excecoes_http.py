@@ -18,5 +18,7 @@ async def handler_regra_negocio(request: Request, exc: Exception) -> JSONRespons
     return erro(422, str(exc))
 
 
-async def handler_credenciais_invalidas(request: Request, exc: Exception) -> JSONResponse:
+async def handler_credenciais_invalidas(
+    request: Request, exc: Exception
+) -> JSONResponse:
     return erro(401, str(exc))

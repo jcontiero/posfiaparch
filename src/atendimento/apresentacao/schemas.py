@@ -1,4 +1,3 @@
-from decimal import Decimal
 from pydantic import BaseModel
 from src.atendimento.dominio.entidades import Cliente, Veiculo, OrdemDeServico
 
@@ -27,10 +26,14 @@ class ClienteResponse(BaseModel):
 
     @classmethod
     def from_domain(cls, c: Cliente) -> "ClienteResponse":
-        return cls(id=str(c.id), nome=c.nome,
-                   cpf=c.cpf.valor if c.cpf else None,
-                   cnpj=c.cnpj.valor if c.cnpj else None,
-                   email=c.email, telefone=c.telefone)
+        return cls(
+            id=str(c.id),
+            nome=c.nome,
+            cpf=c.cpf.valor if c.cpf else None,
+            cnpj=c.cnpj.valor if c.cnpj else None,
+            email=c.email,
+            telefone=c.telefone,
+        )
 
 
 class CadastrarVeiculoRequest(BaseModel):
@@ -60,14 +63,84 @@ class VeiculoResponse(BaseModel):
 
     @classmethod
     def from_domain(cls, v: Veiculo) -> "VeiculoResponse":
-        return cls(id=str(v.id), cliente_id=str(v.cliente_id), placa=v.placa.valor,
-                   marca=v.marca, modelo=v.modelo, ano=v.ano, cor=v.cor)
+        return cls(
+            id=str(v.id),
+            cliente_id=str(v.cliente_id),
+            placa=v.placa.valor,
+            marca=v.marca,
+            modelo=v.modelo,
+            ano=v.ano,
+            cor=v.cor,
+        )
+
+
+class ClienteUnificadoRequest(BaseModel):
+    nome: str
+    email: str
+    telefone: str
+    cpf: str | None = None
+    cnpj: str | None = None
+
+
+class VeiculoUnificadoRequest(BaseModel):
+    placa: str
+    marca: str
+    modelo: str
+    ano: int
+    cor: str = ""
+    descricao_problema: str = ""
+
+
+class ServicoUnificadoRequest(BaseModel):
+    servico_id: str
+    observacao: str = ""
+
+
+class PecaUnificadoRequest(BaseModel):
+    peca_id: str
+    quantidade: int
 
 
 class AbrirOsRequest(BaseModel):
-    cliente_cpf_cnpj: str
-    veiculo_placa: str
+    cliente: ClienteUnificadoRequest
+    veiculo: VeiculoUnificadoRequest
+    servicos: list[ServicoUnificadoRequest]
+    pecas: list[PecaUnificadoRequest] = []
+
+
+class StatusOsResponse(BaseModel):
+    id: str
+    status: str
+
+
+class AprovacaoOrcamentoRequest(BaseModel):
+    aprovado: bool
+    motivo: str = ""
+
+
+class ListarOsFase2Response(BaseModel):
+    id: str
+    status: str
     descricao_problema: str
+    criada_em: str
+    atualizada_em: str
+
+    @classmethod
+    def from_domain(cls, os: OrdemDeServico) -> "ListarOsFase2Response":
+        from src.atendimento.dominio.value_objects import para_status_fase2
+
+        return cls(
+            id=str(os.id),
+            status=para_status_fase2(os.status).value,
+            descricao_problema=os.descricao_problema,
+            criada_em=os.criada_em.isoformat(),
+            atualizada_em=os.atualizada_em.isoformat(),
+        )
+
+
+class WebhookAtualizarStatusRequest(BaseModel):
+    status: str
+    token: str
 
 
 class AdicionarServicoRequest(BaseModel):
@@ -131,17 +204,26 @@ class OsResponse(BaseModel):
             laudo_diagnostico=os.laudo_diagnostico,
             valor_orcamento=str(os.valor_orcamento) if os.valor_orcamento else None,
             itens_servico=[
-                ItemServicoResponse(id=str(i.id), servico_id=str(i.servico_id),
-                                    descricao=i.descricao, preco_unitario=str(i.preco_unitario),
-                                    observacao=i.observacao, concluido=i.concluido,
-                                    concluido_em=i.concluido_em.isoformat() if i.concluido_em else None)
+                ItemServicoResponse(
+                    id=str(i.id),
+                    servico_id=str(i.servico_id),
+                    descricao=i.descricao,
+                    preco_unitario=str(i.preco_unitario),
+                    observacao=i.observacao,
+                    concluido=i.concluido,
+                    concluido_em=i.concluido_em.isoformat() if i.concluido_em else None,
+                )
                 for i in os.itens_servico
             ],
             itens_peca=[
-                ItemPecaResponse(id=str(i.id), peca_id=str(i.peca_id),
-                                 descricao=i.descricao, quantidade=i.quantidade,
-                                 preco_unitario=str(i.preco_unitario),
-                                 preco_total=str(i.preco_total))
+                ItemPecaResponse(
+                    id=str(i.id),
+                    peca_id=str(i.peca_id),
+                    descricao=i.descricao,
+                    quantidade=i.quantidade,
+                    preco_unitario=str(i.preco_unitario),
+                    preco_total=str(i.preco_total),
+                )
                 for i in os.itens_peca
             ],
             criada_em=os.criada_em.isoformat(),
@@ -158,12 +240,17 @@ class ItensOsResponse(BaseModel):
     itens: list[ItemServicoResponse]
 
     @classmethod
-    def from_domain(cls, os: OrdemDeServico, apenas_pendentes: bool = False) -> "ItensOsResponse":
+    def from_domain(
+        cls, os: OrdemDeServico, apenas_pendentes: bool = False
+    ) -> "ItensOsResponse":
         itens = [
             ItemServicoResponse(
-                id=str(i.id), servico_id=str(i.servico_id),
-                descricao=i.descricao, preco_unitario=str(i.preco_unitario),
-                observacao=i.observacao, concluido=i.concluido,
+                id=str(i.id),
+                servico_id=str(i.servico_id),
+                descricao=i.descricao,
+                preco_unitario=str(i.preco_unitario),
+                observacao=i.observacao,
+                concluido=i.concluido,
                 concluido_em=i.concluido_em.isoformat() if i.concluido_em else None,
             )
             for i in os.itens_servico
@@ -196,7 +283,9 @@ class AcompanharOsResponse(BaseModel):
             status=os.status.value,
             descricao_problema=os.descricao_problema,
             valor_orcamento=str(os.valor_orcamento) if os.valor_orcamento else None,
-            servicos=[{"descricao": i.descricao, "concluido": i.concluido}
-                      for i in os.itens_servico],
+            servicos=[
+                {"descricao": i.descricao, "concluido": i.concluido}
+                for i in os.itens_servico
+            ],
             atualizada_em=os.atualizada_em.isoformat(),
         )

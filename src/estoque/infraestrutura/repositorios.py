@@ -18,10 +18,14 @@ class PecaRepositorioImpl(PecaRepositorio):
             modelo.quantidade_disponivel = peca.quantidade_disponivel
             modelo.quantidade_minima_alerta = peca.quantidade_minima_alerta
         else:
-            modelo = PecaModel(id=peca.id, nome=peca.nome, codigo=peca.codigo,
-                               preco_unitario=peca.preco_unitario,
-                               quantidade_disponivel=peca.quantidade_disponivel,
-                               quantidade_minima_alerta=peca.quantidade_minima_alerta)
+            modelo = PecaModel(
+                id=peca.id,
+                nome=peca.nome,
+                codigo=peca.codigo,
+                preco_unitario=peca.preco_unitario,
+                quantidade_disponivel=peca.quantidade_disponivel,
+                quantidade_minima_alerta=peca.quantidade_minima_alerta,
+            )
             self.db.add(modelo)
         self.db.commit()
         return peca
@@ -34,11 +38,14 @@ class PecaRepositorioImpl(PecaRepositorio):
         modelo = self.db.query(PecaModel).filter(PecaModel.codigo == codigo).first()
         return self._para_entidade(modelo) if modelo else None
 
-    def listar(self, busca: str | None = None, apenas_alerta: bool = False) -> list[Peca]:
+    def listar(
+        self, busca: str | None = None, apenas_alerta: bool = False
+    ) -> list[Peca]:
         query = self.db.query(PecaModel)
         if busca:
             query = query.filter(
-                PecaModel.nome.ilike(f"%{busca}%") | PecaModel.codigo.ilike(f"%{busca}%")
+                PecaModel.nome.ilike(f"%{busca}%")
+                | PecaModel.codigo.ilike(f"%{busca}%")
             )
         modelos = query.all()
         pecas = [self._para_entidade(m) for m in modelos]

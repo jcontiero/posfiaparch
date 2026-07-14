@@ -13,3 +13,8 @@ class PecaNaoEncontradaError(Exception):
 class CodigoPecaDuplicadoError(Exception):
     def __init__(self, codigo: str):
         super().__init__(f"Já existe uma peça com o código: {codigo}")
+
+
+class ReposicaoInvalidaError(Exception):
+    def __init__(self):
+        super().__init__("Quantidade de reposição deve ser maior que zero")

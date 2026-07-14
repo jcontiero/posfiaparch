@@ -35,7 +35,11 @@ class ServicoRepositorioImpl(ServicoRepositorio):
         return self._para_entidade(modelo)
 
     def atualizar(self, servico: Servico) -> Servico:
-        modelo = self.db.query(ServicoModel).filter(ServicoModel.id == servico.id).first()
+        modelo = (
+            self.db.query(ServicoModel).filter(ServicoModel.id == servico.id).first()
+        )
+        if not modelo:
+            return servico
         modelo.nome = servico.nome
         modelo.descricao = servico.descricao
         modelo.preco_base = servico.preco_base
@@ -45,6 +49,8 @@ class ServicoRepositorioImpl(ServicoRepositorio):
 
     def remover(self, id: UUID) -> None:
         modelo = self.db.query(ServicoModel).filter(ServicoModel.id == id).first()
+        if not modelo:
+            return
         self.db.delete(modelo)
         self.db.commit()
 

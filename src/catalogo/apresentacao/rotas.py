@@ -1,8 +1,14 @@
 from typing import Annotated
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
-from src.shared.dependencias import get_db, get_usuario_atual
+from src.shared.dependencias import get_usuario_atual
+from src.container import (
+    get_cadastrar_servico,
+    get_listar_servicos,
+    get_buscar_servico,
+    get_atualizar_servico,
+    get_remover_servico,
+)
 from src.catalogo.aplicacao.casos_de_uso import (
     CadastrarServico,
     ListarServicos,
@@ -10,7 +16,6 @@ from src.catalogo.aplicacao.casos_de_uso import (
     AtualizarServico,
     RemoverServico,
 )
-from src.catalogo.infraestrutura.repositorios import ServicoRepositorioImpl
 from src.catalogo.dominio.excecoes import ServicoNaoEncontradoError
 from src.catalogo.apresentacao.schemas import (
     ServicoRequest,
@@ -18,7 +23,6 @@ from src.catalogo.apresentacao.schemas import (
     ServicoResponse,
 )
 
-DBDep = Annotated[Session, Depends(get_db)]
 AuthDep = Annotated[dict, Depends(get_usuario_atual)]
 
 router = APIRouter(tags=["Catálogo"])
@@ -27,11 +31,9 @@ router = APIRouter(tags=["Catálogo"])
 @router.post("/servicos", response_model=ServicoResponse, status_code=201)
 def cadastrar_servico(
     body: ServicoRequest,
-    db: DBDep,
+    caso_de_uso: Annotated[CadastrarServico, Depends(get_cadastrar_servico)],
     _: AuthDep,
 ):
-    repo = ServicoRepositorioImpl(db)
-    caso_de_uso = CadastrarServico(repo)
     servico = caso_de_uso.executar(
         nome=body.nome,
         descricao=body.descricao,
@@ -49,12 +51,10 @@ def cadastrar_servico(
 
 @router.get("/servicos", response_model=list[ServicoResponse])
 def listar_servicos(
+    caso_de_uso: Annotated[ListarServicos, Depends(get_listar_servicos)],
+    _: AuthDep,
     busca: str | None = Query(default=None),
-    db: DBDep = None,
-    _: AuthDep = None,
 ):
-    repo = ServicoRepositorioImpl(db)
-    caso_de_uso = ListarServicos(repo)
     servicos = caso_de_uso.executar(busca)
     return [
         ServicoResponse(
@@ -71,11 +71,9 @@ def listar_servicos(
 @router.get("/servicos/{id}", response_model=ServicoResponse)
 def buscar_servico(
     id: UUID,
-    db: DBDep,
+    caso_de_uso: Annotated[BuscarServico, Depends(get_buscar_servico)],
     _: AuthDep,
 ):
-    repo = ServicoRepositorioImpl(db)
-    caso_de_uso = BuscarServico(repo)
     try:
         servico = caso_de_uso.executar(id)
         return ServicoResponse(
@@ -93,11 +91,9 @@ def buscar_servico(
 def atualizar_servico(
     id: UUID,
     body: ServicoAtualizarRequest,
-    db: DBDep,
+    caso_de_uso: Annotated[AtualizarServico, Depends(get_atualizar_servico)],
     _: AuthDep,
 ):
-    repo = ServicoRepositorioImpl(db)
-    caso_de_uso = AtualizarServico(repo)
     try:
         servico = caso_de_uso.executar(
             id=id,
@@ -120,11 +116,9 @@ def atualizar_servico(
 @router.delete("/servicos/{id}", status_code=204)
 def remover_servico(
     id: UUID,
-    db: DBDep,
+    caso_de_uso: Annotated[RemoverServico, Depends(get_remover_servico)],
     _: AuthDep,
 ):
-    repo = ServicoRepositorioImpl(db)
-    caso_de_uso = RemoverServico(repo)
     try:
         caso_de_uso.executar(id)
     except ServicoNaoEncontradoError as e:

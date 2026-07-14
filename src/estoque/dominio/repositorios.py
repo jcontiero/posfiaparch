@@ -6,16 +6,23 @@ from src.estoque.dominio.entidades import Peca
 class PecaRepositorio(ABC):  # pragma: no cover
 
     @abstractmethod
-    def salvar(self, peca: Peca) -> Peca: pass
+    def salvar(self, peca: Peca) -> Peca:
+        pass
 
     @abstractmethod
-    def buscar_por_id(self, id: UUID) -> Peca | None: pass
+    def buscar_por_id(self, id: UUID) -> Peca | None:
+        pass
 
     @abstractmethod
-    def buscar_por_codigo(self, codigo: str) -> Peca | None: pass
+    def buscar_por_codigo(self, codigo: str) -> Peca | None:
+        pass
 
     @abstractmethod
-    def listar(self, busca: str | None = None, apenas_alerta: bool = False) -> list[Peca]: pass
+    def listar(
+        self, busca: str | None = None, apenas_alerta: bool = False
+    ) -> list[Peca]:
+        pass
 
     @abstractmethod
-    def remover(self, id: UUID) -> None: pass
+    def remover(self, id: UUID) -> None:
+        pass

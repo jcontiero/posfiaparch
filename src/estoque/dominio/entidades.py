@@ -14,13 +14,18 @@ class Peca:
 
     def reservar(self, quantidade: int) -> None:
         from src.estoque.dominio.excecoes import EstoqueInsuficienteError
+
         if quantidade > self.quantidade_disponivel:
-            raise EstoqueInsuficienteError(self.nome, quantidade, self.quantidade_disponivel)
+            raise EstoqueInsuficienteError(
+                self.nome, quantidade, self.quantidade_disponivel
+            )
         self.quantidade_disponivel -= quantidade
 
     def repor(self, quantidade: int) -> None:
+        from src.estoque.dominio.excecoes import ReposicaoInvalidaError
+
         if quantidade <= 0:
-            raise ValueError("Quantidade de reposição deve ser maior que zero")
+            raise ReposicaoInvalidaError()
         self.quantidade_disponivel += quantidade
 
     def liberar_reserva(self, quantidade: int) -> None:

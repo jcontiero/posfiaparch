@@ -1,11 +1,15 @@
 from src.atendimento.dominio.value_objects import StatusOS
 
 
-class TransicaoInvalidaError(Exception):
+class TransicaoDeStatusInvalidaError(Exception):
     def __init__(self, atual: StatusOS, tentada: StatusOS):
         super().__init__(
             f"Transição inválida: OS em '{atual.value}' não pode ir para '{tentada.value}'"
         )
+
+
+class TransicaoInvalidaError(TransicaoDeStatusInvalidaError):
+    pass
 
 
 class OsSemServicosError(Exception):
@@ -35,7 +39,9 @@ class VeiculoComOsAtivaError(Exception):
 
 class ClienteComOsAtivaError(Exception):
     def __init__(self):
-        super().__init__("Cliente possui ordens de serviço ativas e não pode ser removido")
+        super().__init__(
+            "Cliente possui ordens de serviço ativas e não pode ser removido"
+        )
 
 
 class DocumentoDuplicadoError(Exception):
@@ -51,3 +57,23 @@ class PlacaDuplicadaError(Exception):
 class ItemNaoEncontradoError(Exception):
     def __init__(self, item_id):
         super().__init__(f"Item não encontrado na ordem de serviço: {item_id}")
+
+
+class OrdemDeServicoNaoEncontradaError(Exception):
+    def __init__(self, identificador: str):
+        super().__init__(f"Ordem de serviço não encontrada: {identificador}")
+
+
+class TokenDeAprovacaoInvalidoError(Exception):
+    def __init__(self):
+        super().__init__("Token de aprovação inválido")
+
+
+class TokenDeAprovacaoExpiradoError(Exception):
+    def __init__(self):
+        super().__init__("Token de aprovação expirado")
+
+
+class DocumentoClienteInvalidoError(Exception):
+    def __init__(self):
+        super().__init__("Cliente deve ter CPF ou CNPJ — nunca ambos ou nenhum")
