@@ -18,10 +18,6 @@ output "kubectl_command" {
   value       = "kubectl --kubeconfig=${module.cluster.kubeconfig_path} cluster-info"
 }
 
-output "registry_url" {
-  description = "URL do registry local de imagens"
-  value       = module.registry.registry_url
-}
 
 output "postgres_namespace" {
   description = "Namespace do PostgreSQL"
@@ -45,9 +41,6 @@ output "next_steps" {
 1. Configure o kubectl: export KUBECONFIG=${module.cluster.kubeconfig_path}
 2. Verifique o cluster: kubectl cluster-info
 3. Verifique o PostgreSQL: kubectl get pods -n ${module.database.namespace}
-4. Faça push da imagem para o registry local:
-   docker tag oficina-api:v0.2.0 ${module.registry.registry_url}/oficina-api:v0.2.0
-   docker push ${module.registry.registry_url}/oficina-api:v0.2.0
-5. Aplique os manifestos em /k8s (ajuste a imagem para usar ${module.registry.registry_url}/oficina-api:v0.2.0)
+4. Aplique os manifestos em /k8s: kubectl apply -f k8s/
 EOT
 }
