@@ -37,8 +37,8 @@ resource "helm_release" "postgres" {
       value = var.password
     },
     {
-      name  = "primary.persistence.size"
-      value = var.persistence_size
+      name  = "primary.persistence.enabled"
+      value = "false"
     },
     {
       name  = "primary.resources.requests.memory"
