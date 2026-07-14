@@ -1,8 +1,8 @@
-# ADR-002 — Escolha da Arquitetura
+# ADR-002 — Escolha da Arquitetura (Atualizado Fase 2)
 
-**Projeto:** Sistema de Oficina Mecânica — FIAP Pos Tech Fase 1
-**Status:** Aceito
-**Data:** 2026-04
+**Projeto:** Sistema de Oficina Mecânica — FIAP Pos Tech Fase 2
+**Status:** Aceito (Evoluído na Fase 2)
+**Data:** 2026-07
 **Autor:** Jonas Vasconcelos
 
 ---
@@ -146,8 +146,18 @@ Exemplo: `POST /ordens-de-servico/{id}/adicionar-peca`
 
 ### Negativas
 
-- **Verbosidade**: A separação aggregate ↔ model introduz código adicional comparado a um CRUD simples.
 - **Disciplina necessária**: Python não impõe barreiras de import — a regra "domínio não importa SQLAlchemy" é por convenção, não técnica.
+
+---
+
+## Evolução para a Fase 2 (Clean Architecture / Hexagonal)
+
+Com os novos requisitos da Fase 2, o sistema precisou ser refatorado para garantir maior resiliência e escalabilidade. O enunciado da Fase 2 determinou explicitamente a aplicação de **Clean Architecture ou Arquitetura Hexagonal**.
+
+### Mudanças Implementadas
+1. **Isolamento Total do Domínio**: Os repositórios concretos (ex: `SQLAlchemyOsRepository`) passaram a implementar rigorosamente interfaces (Ports) definidas na camada de aplicação/domínio, caracterizando a inversão de dependência real.
+2. **Separação de Preocupações**: A injeção de dependência via frameworks (como FastAPI `Depends` ou containers de DI) foi restrita às bordas da aplicação (camada de apresentação). O núcleo (casos de uso) desconhece qualquer contexto web.
+3. **Containerização e Orquestração**: A aplicação passou a ser gerida via Docker, Kubernetes (Kind) e Terraform, tirando a responsabilidade de resiliência e failover de dentro do código da aplicação e delegando para a infraestrutura.
 
 ---
 

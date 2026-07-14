@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Oficina API - Demo Fase 2</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; color: #333; padding: 20px; max-width: 900px; margin: 0 auto; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; border-left: 5px solid #007bff; }
+        button { background: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        button:hover { background: #0056b3; }
+        button.action { background: #28a745; }
+        button.action:hover { background: #218838; }
+        pre { background: #272822; color: #f8f8f2; padding: 15px; border-radius: 4px; overflow-x: auto; max-height: 400px; font-size: 13px; margin-top: 15px; }
+        input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin-right: 10px; width: 320px; font-family: monospace;}
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        th, td { border: 1px solid #eee; padding: 10px; text-align: left; }
+        th { background: #f8f9fa; color: #555; }
+        tr:nth-child(even) { background: #fcfcfc; }
+        .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; background: #e9ecef; color: #495057; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Demo - APIs da Fase 2 (Oficina Mecânica)</h1>
+    <p>Utilize este painel para executar os testes do seu roteiro de vídeo de forma visual e fluida.</p>
+    
+    <div class="card" id="auth-card">
+        <h3>🔑 1. Autenticação</h3>
+        <p>Gera o token JWT de Admin para as requisições.</p>
+        <button onclick="login()">Fazer Login (Admin)</button>
+        <span id="login-status" style="margin-left: 15px; font-weight: bold; color: #666;">Não autenticado</span>
+    </div>
+
+    <div class="card">
+        <h3>📋 2. Listagem Ordenada de OS (Ativas)</h3>
+        <p>Demonstra a regra de negócio: Em Execução > Aguardando Aprovação > Diagnóstico > Recebida.</p>
+        <button class="action" onclick="listarOS()">Listar OS</button>
+        <div id="os-list"></div>
+    </div>
+
+    <div class="card">
+        <h3>➕ 3. Abertura Unificada</h3>
+        <p>Injeta um payload complexo para criar uma OS para o primeiro cliente da base.</p>
+        <button class="action" onclick="abrirOS()">Criar Nova OS (Abertura Unificada)</button>
+        <pre id="abertura-result">Clique no botão acima para ver o resultado da API...</pre>
+    </div>
+
+    <div class="card">
+        <h3>⚙️ 4. Consulta de Status e Aprovação</h3>
+        <p>Copie o ID de uma OS (Aguardando Aprovação) da listagem acima e cole aqui para aprovar.</p>
+        <input type="text" id="os-id" placeholder="ID da Ordem de Serviço (UUID)">
+        <br>
+        <button onclick="consultarStatus()">Consultar Status</button>
+        <button class="action" onclick="aprovarOS()">Aprovar Orçamento</button>
+        <pre id="status-result">Aguardando ação...</pre>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:8000";
+        let token = null;
+
+        async function login() {
+            const payload = {
+                email: 'admin@oficina.com',
+                senha: 'senha123'
+            };
+
+            const res = await fetch(`${API_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.token) {
+                token = data.token;
+                document.getElementById('login-status').innerText = '✅ Autenticado com Sucesso!';
+                document.getElementById('login-status').style.color = '#28a745';
+            } else {
+                alert("Falha no login! " + JSON.stringify(data));
+            }
+        }
+
+        function getHeaders() {
+            return {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+        }
+
+        async function listarOS() {
+            if (!token) return alert("Faça o login primeiro no Passo 1!");
+            document.getElementById('os-list').innerHTML = "<i>Carregando...</i>";
+            
+            const res = await fetch(`${API_URL}/ordens-de-servico`, { headers: getHeaders() });
+            const data = await res.json();
+            
+            let html = `<table><tr><th>ID (Copie para testar)</th><th>Problema Relatado</th><th>Status da OS</th><th>Data/Hora</th></tr>`;
+            data.forEach(os => {
+                html += `<tr>
+                    <td style="font-family: monospace; font-size: 11px; cursor: pointer; color: #007bff;" onclick="document.getElementById('os-id').value='${os.id}'" title="Clique para copiar para o campo de Aprovação">${os.id}</td>
+                    <td>${os.descricao_problema}</td>
+                    <td><span class="status-badge">${os.status}</span></td>
+                    <td>${new Date(os.criada_em).toLocaleString()}</td>
+                </tr>`;
+            });
+            html += `</table><p><small><i>Dica: Clique no ID na tabela para copiar para o campo abaixo.</i></small></p>`;
+            document.getElementById('os-list').innerHTML = html;
+        }
+
+        async function abrirOS() {
+            if (!token) return alert("Faça o login primeiro no Passo 1!");
+            document.getElementById('abertura-result').innerText = "Processando abertura unificada...";
+            
+            try {
+                // Pega o primeiro cliente
+                let res = await fetch(`${API_URL}/clientes`, { headers: getHeaders() });
+                const clientes = await res.json();
+                const cliente = clientes[0];
+
+                // Pega os veiculos do cliente
+                res = await fetch(`${API_URL}/veiculos?cliente_id=${cliente.id}`, { headers: getHeaders() });
+                const veiculos = await res.json();
+                const veiculo = veiculos[0];
+
+                // Pega o primeiro serviço do catálogo para adicionar na OS
+                res = await fetch(`${API_URL}/servicos`, { headers: getHeaders() });
+                const catalogoServicos = await res.json();
+                const servico = catalogoServicos[0];
+
+                // Payload no padrão da Fase 2 (Abertura Unificada)
+                const payload = {
+                    cliente: { 
+                        nome: cliente.nome,
+                        email: cliente.email,
+                        telefone: cliente.telefone,
+                        cpf: cliente.cpf || undefined,
+                        cnpj: cliente.cnpj || undefined
+                    },
+                    veiculo: { 
+                        placa: "ZZZ" + Math.floor(1000 + Math.random() * 9000).toString(),
+                        marca: veiculo.marca,
+                        modelo: veiculo.modelo,
+                        ano: veiculo.ano,
+                        cor: veiculo.cor,
+                        descricao_problema: "Apresentado no Vídeo - Carro fazendo barulho no motor"
+                    },
+                    servicos: [
+                        { servico_id: servico.id, observacao: "Incluso via abertura unificada pelo frontend" }
+                    ],
+                    pecas: []
+                };
+
+                res = await fetch(`${API_URL}/ordens-de-servico`, {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                document.getElementById('abertura-result').innerText = "Status: " + res.status + "\n\n" + JSON.stringify(data, null, 2);
+                
+                if (res.ok) {
+                    document.getElementById('os-id').value = data.id;
+                    listarOS(); // Atualiza a lista
+                }
+            } catch (error) {
+                document.getElementById('abertura-result').innerText = "Erro: " + error.message;
+            }
+        }
+
+        async function consultarStatus() {
+            const id = document.getElementById('os-id').value;
+            if (!id) return alert("Preencha o ID da OS ou clique em algum ID da tabela acima.");
+            if (!token) return alert("Faça o login primeiro!");
+            
+            const res = await fetch(`${API_URL}/ordens-de-servico/${id}/status`, { headers: getHeaders() });
+            const data = await res.json();
+            document.getElementById('status-result').innerText = "Status: " + res.status + "\n\n" + JSON.stringify(data, null, 2);
+        }
+
+        async function aprovarOS() {
+            const id = document.getElementById('os-id').value;
+            if (!id) return alert("Preencha o ID da OS ou clique em algum ID da tabela acima.");
+            if (!token) return alert("Faça o login primeiro!");
+
+            const payload = {
+                aprovado: true,
+                motivo: "Aprovado via Painel de Demo"
+            };
+
+            const res = await fetch(`${API_URL}/ordens-de-servico/${id}/aprovacao`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            
+            if(res.ok) {
+                 document.getElementById('status-result').innerText = "✅ SUCESSO - Orçamento Aprovado!\n\n" + JSON.stringify(data, null, 2);
+                 listarOS(); // Atualiza a lista
+            } else {
+                 document.getElementById('status-result').innerText = "❌ ERRO DA REGRA DE NEGÓCIO\n(A OS precisa estar em AGUARDANDO_APROVACAO ou você pode estar sem peças no estoque)\n\n" + JSON.stringify(data, null, 2);
+            }
+        }
+    </script>
+</body>
+</html>

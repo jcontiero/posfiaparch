@@ -1,0 +1,382 @@
+{
+  "info": {
+    "name": "Oficina Mecânica API - Fase 2",
+    "description": "Collection completa das APIs obrigatórias da Fase 2: abertura unificada, status, aprovação, listagem ordenada e webhook.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Autenticação",
+      "item": [
+        {
+          "name": "Login Admin",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@oficina.com\",\n  \"senha\": \"senha123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Autentica o usuário admin e retorna o token JWT."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Catálogo",
+      "item": [
+        {
+          "name": "Criar Serviço",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Troca de óleo\",\n  \"descricao\": \"Troca de óleo do motor e filtros\",\n  \"preco\": 150.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/servicos",
+              "host": ["{{base_url}}"],
+              "path": ["servicos"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Estoque",
+      "item": [
+        {
+          "name": "Criar Peça",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"OLEO001\",\n  \"nome\": \"Óleo Motor 5W30\",\n  \"quantidade\": 20,\n  \"quantidade_minima\": 5,\n  \"preco_unitario\": 45.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/pecas",
+              "host": ["{{base_url}}"],
+              "path": ["pecas"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Atendimento",
+      "item": [
+        {
+          "name": "Criar Cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"João Silva\",\n  \"documento\": \"12345678901\",\n  \"tipo\": \"PF\",\n  \"email\": \"joao.silva@email.com\",\n  \"telefone\": \"11999990000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/clientes",
+              "host": ["{{base_url}}"],
+              "path": ["clientes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Veículo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cliente_id\": \"{{cliente_id}}\",\n  \"placa\": \"ABC1D23\",\n  \"marca\": \"Fiat\",\n  \"modelo\": \"Uno\",\n  \"ano\": 2020\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/veiculos",
+              "host": ["{{base_url}}"],
+              "path": ["veiculos"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Ordens de Serviço - Fase 2",
+      "item": [
+        {
+          "name": "Abertura Unificada",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cliente\": {\n    \"nome\": \"Maria Souza\",\n    \"documento\": \"98765432100\",\n    \"tipo\": \"PF\",\n    \"email\": \"maria.souza@email.com\",\n    \"telefone\": \"11988887777\"\n  },\n  \"veiculo\": {\n    \"placa\": \"XYZ9K87\",\n    \"marca\": \"Honda\",\n    \"modelo\": \"Civic\",\n    \"ano\": 2022\n  },\n  \"servicos\": [\n    {\n      \"servico_id\": \"{{servico_id}}\",\n      \"quantidade\": 1\n    }\n  ],\n  \"pecas\": [\n    {\n      \"peca_id\": \"{{peca_id}}\",\n      \"quantidade\": 2\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/ordens-de-servico",
+              "host": ["{{base_url}}"],
+              "path": ["ordens-de-servico"]
+            },
+            "description": "Cria cliente, veículo e OS em uma única chamada."
+          },
+          "response": []
+        },
+        {
+          "name": "Consultar Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/ordens-de-servico/{{os_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["ordens-de-servico", "{{os_id}}", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listagem Ordenada",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/ordens-de-servico",
+              "host": ["{{base_url}}"],
+              "path": ["ordens-de-servico"]
+            },
+            "description": "Lista OS ativas ordenadas: Em Execução > Aguardando Aprovação > Diagnóstico > Recebida."
+          },
+          "response": []
+        },
+        {
+          "name": "Aprovar Orçamento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"aprovado\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/ordens-de-servico/{{os_id}}/aprovacao",
+              "host": ["{{base_url}}"],
+              "path": ["ordens-de-servico", "{{os_id}}", "aprovacao"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Recusar Orçamento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"aprovado\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/ordens-de-servico/{{os_id}}/aprovacao",
+              "host": ["{{base_url}}"],
+              "path": ["ordens-de-servico", "{{os_id}}", "aprovacao"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Webhook",
+      "item": [
+        {
+          "name": "Atualizar Status via E-mail",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"EM_EXECUCAO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/webhooks/os/{{os_id}}/atualizar-status?token={{webhook_token}}",
+              "host": ["{{base_url}}"],
+              "path": ["webhooks", "os", "{{os_id}}", "atualizar-status"],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{webhook_token}}"
+                }
+              ]
+            },
+            "description": "Endpoint seguro com token no link para atualização de status via e-mail."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cliente_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "servico_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "peca_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "os_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "webhook_token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

@@ -1,6 +1,10 @@
 .env
+.envrc
 __pycache__/
 *.pyc
+.venv/
+venv/
+env/
 .pytest_cache/
 .coverage
 htmlcov/
@@ -12,3 +16,11 @@ hs_err_pid*.log
 docs/aux/entrega-fase1.html
 docs/0[1-9]-*.md
 .oculto/
+
+# Terraform
+infra/.terraform/
+infra/*.tfstate
+infra/*.tfstate.*
+infra/.terraform.lock.hcl
+infra/kubeconfig
+infra/crash.log

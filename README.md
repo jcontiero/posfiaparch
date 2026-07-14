@@ -1,23 +1,101 @@
-# Oficina Mecânica API
+# Oficina Mecânica API — Fase 2
 
 [![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=jcontiero_posfiaparch_fase01&token=b4911515593a102dd125f01015779211089bbd21)](https://sonarcloud.io/summary/new_code?id=jcontiero_posfiaparch_fase01)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=jcontiero_posfiaparch_fase01&metric=coverage&token=b4911515593a102dd125f01015779211089bbd21)](https://sonarcloud.io/summary/new_code?id=jcontiero_posfiaparch_fase01)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=jcontiero_posfiaparch_fase01&metric=vulnerabilities&token=b4911515593a102dd125f01015779211089bbd21)](https://sonarcloud.io/summary/new_code?id=jcontiero_posfiaparch_fase01)
 
-Sistema Integrado de Atendimento e Execução de Serviços — MVP back-end desenvolvido como Tech Challenge da Pós Tech em Arquitetura de Software (FIAP, Fase 1).
+Sistema Integrado de Atendimento e Execução de Serviços — Tech Challenge da Pós Tech em Arquitetura de Software (FIAP, Fase 2).
 
-## Sobre o projeto
+---
 
-API RESTful para gerenciamento de uma oficina mecânica, cobrindo o ciclo completo de Ordens de Serviço: abertura, diagnóstico, orçamento, execução e entrega. Desenvolvido com **Python + FastAPI + PostgreSQL**, aplicando **Domain-Driven Design (DDD)** e arquitetura em camadas.
+## 1. Objetivos da Fase 2
 
-## Requisitos
+A Fase 2 evoluiu o MVP inicial para uma arquitetura escalável, resiliente e automatizada:
+
+- **Clean Architecture / Hexagonal:** separação clara entre domínio, aplicação, infraestrutura e apresentação, com ports/adapters e injeção de dependências.
+- **APIs de Ordem de Serviço:** abertura unificada, consulta de status, aprovação externa, listagem ordenada e webhook de atualização por e-mail.
+- **Containerização:** Dockerfile multi-stage, usuário não-root, health check e separação de migrations/seeds.
+- **Orquestração:** manifestos Kubernetes completos em `/k8s` (Deployment, Service, HPA, ConfigMap, Secret, Job, PVC, Postgres).
+- **Infraestrutura como Código:** scripts Terraform modulares em `/infra` provisionando cluster kind, PostgreSQL via Helm e registry local.
+- **CI/CD:** pipeline GitHub Actions com lint, testes, cobertura, SonarQube, build/push Docker, Terraform, deploy no Kubernetes e migrations.
+
+---
+
+## 2. Arquitetura
+
+### 2.1 Visão geral
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        GitHub Actions                        │
+│  lint → testes → cobertura → build Docker → Terraform → K8s │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     Cluster Kubernetes                       │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
+│  │  API Pods   │  │  PostgreSQL │  │   Registry Local    │  │
+│  │  (HPA)      │  │  (Helm)     │  │   (Docker)          │  │
+│  └─────────────┘  └─────────────┘  └─────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 2.2 Estrutura do código
+
+```
+src/
+├── main.py                 # Ponto de entrada FastAPI
+├── container.py            # Container de injeção de dependências
+├── config.py               # Configurações via pydantic-settings
+├── shared/                 # Utilitários e exceções HTTP genéricas
+├── identidade/             # Autenticação JWT
+├── atendimento/            # Clientes, Veículos, Ordens de Serviço
+├── catalogo/               # Catálogo de Serviços
+├── estoque/                # Peças e controle de estoque
+└── relatorios/             # Relatórios
+    ├── dominio/
+    ├── aplicacao/
+    ├── infraestrutura/
+    └── apresentacao/
+```
+
+### 2.3 Camadas (Clean Architecture)
+
+- **Domínio:** entidades, value objects, exceções e regras puras.
+- **Aplicação:** casos de uso e ports (interfaces).
+- **Infraestrutura:** adapters (SQLAlchemy, JWT, bcrypt, SMTP).
+- **Apresentação:** rotas FastAPI + schemas Pydantic.
+
+---
+
+## 3. Stack tecnológica
+
+| Camada | Tecnologia |
+|---|---|
+| Framework | FastAPI + Uvicorn |
+| ORM + migrations | SQLAlchemy 2.0 + Alembic (preparado) |
+| Banco de dados | PostgreSQL 16 |
+| Testes | pytest, pytest-cov, httpx |
+| Lint/Format | ruff, black |
+| Container | Docker + Docker Compose |
+| Orquestração | Kubernetes |
+| IaC | Terraform |
+| CI/CD | GitHub Actions |
+| Registry | Docker Hub (produção) / registry local (dev) |
+
+---
+
+## 4. Como executar
+
+### 4.1 Pré-requisitos
 
 - Docker e Docker Compose
-- Python 3.12+ (apenas para desenvolvimento local sem Docker)
+- Terraform 1.5+
+- kubectl
+- kind (opcional, para provisionamento via Terraform)
 
-## Como executar
-
-### Com Docker (recomendado)
+### 4.2 Execução local com Docker Compose
 
 ```bash
 # 1. Clone o repositório
@@ -29,147 +107,155 @@ cp .env.example .env
 # Edite .env e defina uma SECRET_KEY segura
 
 # 3. Suba o ambiente completo
-docker-compose up --build
+docker-compose up -d
+
+# 4. Aplique as migrations do Alembic
+docker compose --profile tools run migrate
+
+# 5. (Opcional) Popule dados iniciais
+docker compose --profile tools run seed
 ```
 
 A API estará disponível em `http://localhost:8000`.  
 Documentação interativa (Swagger): `http://localhost:8000/docs`
 
-### Desenvolvimento local (sem Docker)
+### 4.3 Provisionamento com Terraform (cluster kind local)
 
 ```bash
-# Instale as dependências
-pip install uv
-uv pip install -e ".[dev]"
+cd infra
 
-# Suba apenas o banco de dados
-docker-compose up db
-
-# Configure o .env
-cp .env.example .env
-
-# Inicie a API (tabelas criadas automaticamente no startup)
-uvicorn src.main:app --reload
+terraform init
+terraform plan -var-file=environments/local.tfvars
+terraform apply -var-file=environments/local.tfvars
 ```
 
-## Variáveis de ambiente
+Após o apply, configure o kubectl:
 
-| Variável | Descrição | Exemplo |
-|---|---|---|
-| `DATABASE_URL` | URL de conexão PostgreSQL (driver pg8000) | `postgresql+pg8000://user:pass@localhost:5432/oficina_db` |
-| `SECRET_KEY` | Chave para assinatura JWT | string aleatória longa |
-| `ALGORITHM` | Algoritmo JWT | `HS256` |
-| `TOKEN_EXPIRE_HORAS` | Expiração do token em horas | `8` |
-| `SMTP_HOST` | Servidor SMTP para notificações | `smtp.gmail.com` |
-| `SMTP_PORT` | Porta SMTP | `587` |
-| `SMTP_USER` | Usuário SMTP (e-mail da conta) | `seu@email.com` |
-| `SMTP_PASSWORD` | Senha de app SMTP | senha gerada na conta |
-| `EMAIL_REMETENTE` | E-mail de origem das notificações | `noreply@suaoficina.com` |
-| `EMAIL_ADMIN` | E-mail do Atendente/Admin para notificações | `admin@suaoficina.com` |
+```bash
+export KUBECONFIG=$(pwd)/kubeconfig
+kubectl cluster-info
+```
 
+### 4.4 Deploy no Kubernetes
+
+Com o cluster configurado:
+
+```bash
+# Aplique os manifestos
+kubectl apply -f k8s/
+
+# Aguarde o rollout
+kubectl rollout status deployment/oficina-api -n oficina-api
+
+# Aplique as migrations
+kubectl apply -f k8s/job-migrate.yaml
+```
+
+Para acessar a API localmente via port-forward:
+
+```bash
+kubectl port-forward -n oficina-api svc/oficina-api 8080:80
+curl http://localhost:8080/health
+```
 
 ---
 
-## Testes
+## 5. APIs obrigatórias da Fase 2
+
+| Método | Rota | Descrição |
+|---|---|---|
+| POST | `/auth/login` | Autenticar usuário |
+| POST | `/ordens-de-servico` | Abertura unificada (cliente, veículo, serviços, peças) |
+| GET | `/ordens-de-servico/{id}/status` | Consultar status atual da OS |
+| POST | `/ordens-de-servico/{id}/aprovacao` | Aprovar ou recusar orçamento |
+| GET | `/ordens-de-servico` | Listagem ordenada das OS ativas |
+| POST | `/webhooks/os/{id}/atualizar-status` | Atualização de status via token no link do e-mail |
+
+> Collection completa disponível em: `docs/collection-postman.json`  
+> Documentação Swagger disponível em: `http://localhost:8000/docs`
+
+### 5.1 Status da OS
+
+```
+RECEBIDA → EM_DIAGNOSTICO → AGUARDANDO_ORCAMENTO → AGUARDANDO_APROVACAO
+                                                    → EM_EXECUCAO
+                                                      → SERVICOS_CONCLUIDOS
+                                                        → FINALIZADA
+                                                          → ENTREGUE
+```
+
+---
+
+## 6. Testes
 
 ```bash
-# Suba o banco de teste
+# Suba o banco de dados
 docker-compose up db -d
 
-# Crie o banco de teste (primeira vez)
+# Crie o banco de testes
 docker exec -it <container_db> psql -U oficina_user -c "CREATE DATABASE oficina_test;"
 
-# Execute os testes com cobertura
+# Execute todos os testes com cobertura
 pytest --cov=src --cov-report=term-missing
 
-# Apenas testes unitários (sem banco)
+# Apenas testes unitários
 pytest tests/unit/
 ```
 
-Cobertura mínima: **80%** nos domínios críticos.
+Cobertura mínima: **80%** nas camadas `dominio/` e `aplicacao/`.
 
-## Arquitetura
+---
 
-Monolito com **Layered Architecture + DDD**, organizado em 5 módulos:
+## 7. CI/CD
 
-```
-src/
-├── identidade/     # Autenticação JWT
-├── atendimento/    # Clientes, Veículos e Ordens de Serviço
-├── catalogo/       # Catálogo de Serviços
-├── estoque/        # Peças e Insumos
-└── relatorios/     # Tempo médio de execução
-```
+A pipeline `Build and Deploy` é executada em pushes para `main`/`tech_challenge` e em pull requests.
 
-Cada módulo segue: `dominio/` → `aplicacao/` → `infraestrutura/` → `apresentacao/`.
+Ordem dos jobs:
 
-## Endpoints principais
+1. `lint-and-format` — ruff + black
+2. `unit-tests`
+3. `integration-tests` — com PostgreSQL
+4. `coverage-and-sonar` — pytest-cov + SonarQube
+5. `docker-build-push` — build e push para Docker Hub
+6. `terraform` — plan/apply
+7. `deploy-k8s` — `kubectl apply -f k8s/`
+8. `migrate` — `kubectl apply -f k8s/job-migrate.yaml`
 
-| Método | Rota | Auth | Descrição |
-|---|---|---|---|
-| POST | `/auth/login` | Não | Autenticar usuário |
-| POST | `/clientes` | ADMIN | Cadastrar cliente |
-| POST | `/veiculos` | ADMIN | Cadastrar veículo |
-| POST | `/ordens-de-servico` | ADMIN | Abrir OS |
-| POST | `/ordens-de-servico/{id}/iniciar-diagnostico` | MECANICO | Iniciar diagnóstico |
-| POST | `/ordens-de-servico/{id}/finalizar-diagnostico` | MECANICO | Finalizar diagnóstico → notifica Admin |
-| POST | `/ordens-de-servico/{id}/adicionar-servico` | ADMIN | Adicionar serviço à OS |
-| POST | `/ordens-de-servico/{id}/adicionar-peca` | ADMIN | Adicionar peça à OS (reserva estoque) |
-| POST | `/ordens-de-servico/{id}/gerar-orcamento` | ADMIN | Gerar orçamento → notifica Cliente |
-| GET | `/ordens-de-servico/{id}/acompanhar` | **Não** | Acompanhamento público |
-| POST | `/ordens-de-servico/{id}/aprovar-orcamento` | **Não** | Aprovar orçamento |
-| POST | `/ordens-de-servico/{id}/recusar-orcamento` | **Não** | Recusar orçamento (libera estoque) |
-| GET | `/ordens-de-servico/{id}/itens` | MECANICO | ML: listar itens de serviço da OS (pendentes ou todos) |
-| POST | `/ordens-de-servico/{id}/executar-servico/{item_id}` | MECANICO | Executar serviço |
-| POST | `/ordens-de-servico/{id}/finalizar` | ADMIN | Finalizar OS (controle de qualidade) → notifica Cliente |
-| POST | `/ordens-de-servico/{id}/entregar` | ADMIN | Entregar veículo |
-| POST | `/pecas/{id}/repor-estoque` | ADMIN | Repor estoque |
-| GET | `/relatorios/tempo-medio-servicos` | ADMIN | Tempo médio por serviço |
+Configure os secrets em:  
+`Settings > Secrets and variables > Actions`
 
-Documentação completa dos 38 endpoints disponível no Swagger em `/docs`.
+Secrets esperados: `SONAR_TOKEN`, `DOCKER_USERNAME`, `DOCKER_PASSWORD`, `KUBE_CONFIG`.
 
-> **Controle de estoque integrado:** peças são adicionadas ao orçamento sem verificar estoque. A reserva ocorre na **aprovação do orçamento** — se o estoque for insuficiente, a aprovação retorna 422. Alertas de estoque abaixo do mínimo são notificados ao Admin após a reserva.
+---
 
-> **Notificações por e-mail (smtplib):** disparadas automaticamente pelos use cases. Se `SMTP_USER` não estiver configurado, ignoradas silenciosamente.
->
-> | Evento | Destinatário |
-> |---|---|
-> | Diagnóstico concluído | Admin |
-> | Orçamento gerado | Cliente |
-> | Orçamento recusado pelo cliente | Admin |
-> | Todos os serviços concluídos | Admin |
-> | OS finalizada — veículo pronto | Cliente |
-> | Estoque reposto | Admin |
+## 8. Entregáveis da Fase 2
 
-### Ciclo de vida da OS
+- [x] Código refatorado com Clean Architecture/Hexagonal
+- [x] APIs de Ordem de Serviço da Fase 2
+- [x] Dockerfile e docker-compose revisados
+- [x] Manifestos Kubernetes em `/k8s`
+- [x] Infraestrutura como Código em `/infra`
+- [x] Pipeline CI/CD em `.github/workflows/build.yml`
+- [x] README atualizado
+- [x] Collection de APIs em `docs/collection-postman.json`
+- [ ] Vídeo demonstrativo — link será adicionado aqui
 
-```
-RECEBIDA
-  → EM_DIAGNOSTICO
-    → AGUARDANDO_ORCAMENTO
-      → AGUARDANDO_APROVACAO ──→ CANCELADA (orçamento recusado)
-        → EM_EXECUCAO
-          → SERVICOS_CONCLUIDOS
-            → FINALIZADA
-              → ENTREGUE
-```
+---
 
-### Perfis de acesso
+## 9. Vídeo demonstrativo
 
-| Perfil | Permissões |
-|---|---|
-| `ADMIN` | Tudo — inclui ações de Atendente/Admin |
-| `MECANICO` | Iniciar diagnóstico, finalizar diagnóstico, executar serviço |
+🎥 **Link do vídeo:** _a ser adicionado após gravação_
 
-## Stack tecnológica
+O vídeo deve demonstrar:
+- Execução local com Docker Compose.
+- Provisionamento do cluster com Terraform.
+- Deploy da aplicação no Kubernetes.
+- Consumo das APIs obrigatórias da Fase 2.
+- Pipeline CI/CD em execução.
+- Escalonamento automático (HPA).
 
-| Componente | Tecnologia |
-|---|---|
-| Framework | FastAPI 0.115 |
-| Banco de dados | PostgreSQL 16 |
-| ORM | SQLAlchemy 2.0 |
-| Migrations | SQLAlchemy `create_all()` no startup — `TypeDecorator` para VOs CPF/CNPJ/Placa |
-| Autenticação | JWT (PyJWT + bcrypt) |
-| Notificações | smtplib — stdlib Python |
-| Testes | pytest + pytest-cov |
-| Container | Docker + Docker Compose |
+---
+
+## 10. Contato
+
+Projeto desenvolvido por Jonas Contiero como Tech Challenge da FIAP Pós Tech em Arquitetura de Software.

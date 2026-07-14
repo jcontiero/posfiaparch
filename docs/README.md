@@ -1,6 +1,15 @@
 # Documentação — Oficina Mecânica API
 
-Documentação técnica do Tech Challenge — Pos Tech Arquitetura de Software (FIAP, Fase 1).
+Documentação técnica do Tech Challenge — Pos Tech Arquitetura de Software (FIAP, Fase 2).
+
+---
+
+## Evolução para a Fase 2
+Esta documentação reflete o estado do sistema após as refatorações arquiteturais da Fase 2, que incluíram:
+- **Clean Architecture / Hexagonal**: Separação rigorosa de domínio e infraestrutura.
+- **Orquestração e IaC**: Manifestos Kubernetes e scripts Terraform (`/k8s` e `/infra`).
+- **CI/CD**: Pipeline automatizado no GitHub Actions.
+- **APIs Expandidas**: Abertura de OS, consulta e aprovação externa.
 
 ---
 
