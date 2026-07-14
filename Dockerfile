@@ -34,7 +34,6 @@ ENV PYTHONPATH=/app
 # Copia o código-fonte da aplicação
 COPY src/ ./src/
 COPY scripts/ ./scripts/
-COPY alembic/ ./alembic/
 COPY alembic.ini ./
 
 # Define permissões para o usuário não-root
