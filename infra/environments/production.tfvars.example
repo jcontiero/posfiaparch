@@ -1,0 +1,13 @@
+# Exemplo de configuração para ambiente de produção em nuvem.
+# Substitua os módulos locais (kind, helm postgresql, docker registry) por módulos do provedor cloud desejado.
+
+environment = "production"
+cluster_name = "oficina-api-prod"
+
+# Exemplo AWS:
+# - Usar módulo terraform-aws-modules/eks/aws para o cluster
+# - Usar terraform-aws-modules/rds/aws para o banco
+# - Usar terraform-aws-modules/ecr/aws para o registry
+# - Configurar backend remoto S3 + DynamoDB
+
+postgres_password = "TROQUE_POR_SENHA_FORTE"

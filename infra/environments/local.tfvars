@@ -1,0 +1,11 @@
+environment               = "local"
+cluster_name              = "oficina-api"
+kubernetes_version        = "v1.32.0"
+registry_name             = "oficina-api-registry"
+registry_port             = 5000
+postgres_namespace        = "oficina-api"
+postgres_release_name     = "postgres"
+postgres_database         = "oficina_db"
+postgres_username         = "oficina_user"
+postgres_password         = "oficina_pass"
+postgres_persistence_size = "5Gi"

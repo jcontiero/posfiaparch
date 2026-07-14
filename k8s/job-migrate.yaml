@@ -1,0 +1,67 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: oficina-api-migrate
+  namespace: oficina-api
+  labels:
+    app: oficina-api
+    tier: api
+    env: production
+spec:
+  template:
+    metadata:
+      labels:
+        app: oficina-api
+        tier: api
+        env: production
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      containers:
+        - name: migrate
+          image: oficina-api:v0.2.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - alembic
+            - upgrade
+            - head
+          envFrom:
+            - configMapRef:
+                name: oficina-api-config
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: oficina-api-secret
+                  key: DATABASE_URL
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: oficina-api-secret
+                  key: SECRET_KEY
+            - name: SMTP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: oficina-api-secret
+                  key: SMTP_USER
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: oficina-api-secret
+                  key: SMTP_PASSWORD
+            - name: ADMIN_SENHA
+              valueFrom:
+                secretKeyRef:
+                  name: oficina-api-secret
+                  key: ADMIN_SENHA
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "1000m"

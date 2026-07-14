@@ -1,0 +1,23 @@
+# Descomente e ajuste conforme o Ingress Controller disponível no cluster.
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: oficina-api-ingress
+#   namespace: oficina-api
+#   labels:
+#     app: oficina-api
+#     tier: api
+#     env: production
+# spec:
+#   ingressClassName: nginx
+#   rules:
+#     - host: oficina-api.local
+#       http:
+#         paths:
+#           - path: /
+#             pathType: Prefix
+#             backend:
+#               service:
+#                 name: oficina-api
+#                 port:
+#                   number: 80

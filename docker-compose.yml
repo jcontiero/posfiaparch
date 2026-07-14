@@ -1,3 +1,7 @@
+# Padrao de credenciais do PostgreSQL (mesmo usuario/senha/banco usado no .env.example)
+# - Aplicacao no Docker usa host 'db'; dev local usa 'localhost'
+name: oficina-api
+
 services:
   db:
     image: postgres:16-alpine
@@ -14,6 +18,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - oficina-network
 
   api:
     build: .
@@ -29,6 +35,51 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - oficina-network
+
+  # Servico opcional para aplicar migrations do Alembic.
+  # Requer que o alembic.ini e as revisions existam no projeto.
+  migrate:
+    build: .
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+pg8000://oficina_user:oficina_pass@db:5432/oficina_db
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["alembic", "upgrade", "head"]
+    profiles:
+      - tools
+    networks:
+      - oficina-network
+
+  # Servico opcional para popular dados iniciais.
+  seed:
+    build: .
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+pg8000://oficina_user:oficina_pass@db:5432/oficina_db
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["python", "scripts/seed.py"]
+    profiles:
+      - tools
+    networks:
+      - oficina-network
 
 volumes:
   postgres_data:
+
+networks:
+  oficina-network:
+    driver: bridge
