@@ -2,13 +2,21 @@ import pytest
 from uuid import uuid4
 from decimal import Decimal
 from src.estoque.dominio.entidades import Peca
-from src.estoque.dominio.excecoes import EstoqueInsuficienteError
+from src.estoque.dominio.excecoes import (
+    EstoqueInsuficienteError,
+    ReposicaoInvalidaError,
+)
 
 
 def _peca(qtd: int = 10) -> Peca:
-    return Peca(id=uuid4(), nome="Pastilha de freio", codigo="PF001",
-                preco_unitario=Decimal("85.00"),
-                quantidade_disponivel=qtd, quantidade_minima_alerta=3)
+    return Peca(
+        id=uuid4(),
+        nome="Pastilha de freio",
+        codigo="PF001",
+        preco_unitario=Decimal("85.00"),
+        quantidade_disponivel=qtd,
+        quantidade_minima_alerta=3,
+    )
 
 
 class TestReserva:
@@ -40,11 +48,11 @@ class TestReposicao:
         assert peca.quantidade_disponivel == 15
 
     def test_repor_zero_falha(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(ReposicaoInvalidaError):
             _peca().repor(0)
 
     def test_repor_negativo_falha(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(ReposicaoInvalidaError):
             _peca().repor(-1)
 
 

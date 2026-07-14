@@ -22,13 +22,37 @@ class TestServicoEntidade:
 
     def test_igualdade_por_id(self):
         id_ = uuid4()
-        s1 = Servico(id=id_, nome="A", descricao="", preco_base=Decimal("1"), tempo_estimado_minutos=10)
-        s2 = Servico(id=id_, nome="B", descricao="", preco_base=Decimal("2"), tempo_estimado_minutos=20)
+        s1 = Servico(
+            id=id_,
+            nome="A",
+            descricao="",
+            preco_base=Decimal("1"),
+            tempo_estimado_minutos=10,
+        )
+        s2 = Servico(
+            id=id_,
+            nome="B",
+            descricao="",
+            preco_base=Decimal("2"),
+            tempo_estimado_minutos=20,
+        )
         assert s1.id == s2.id
 
     def test_ids_distintos_sao_diferentes(self):
-        s1 = Servico(id=uuid4(), nome="A", descricao="", preco_base=Decimal("1"), tempo_estimado_minutos=10)
-        s2 = Servico(id=uuid4(), nome="A", descricao="", preco_base=Decimal("1"), tempo_estimado_minutos=10)
+        s1 = Servico(
+            id=uuid4(),
+            nome="A",
+            descricao="",
+            preco_base=Decimal("1"),
+            tempo_estimado_minutos=10,
+        )
+        s2 = Servico(
+            id=uuid4(),
+            nome="A",
+            descricao="",
+            preco_base=Decimal("1"),
+            tempo_estimado_minutos=10,
+        )
         assert s1.id != s2.id
 
 

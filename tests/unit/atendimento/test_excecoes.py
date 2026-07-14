@@ -1,6 +1,3 @@
-import pytest
-
-from src.atendimento.dominio.value_objects import StatusOS
 from src.atendimento.dominio.excecoes import (
     ServicosNaoConcluidos,
     ClienteNaoEncontradoError,
@@ -44,6 +41,7 @@ class TestExcecoesAtendimento:
 
     def test_item_nao_encontrado(self):
         from uuid import uuid4
+
         id_ = uuid4()
         erro = ItemNaoEncontradoError(id_)
         assert str(id_) in str(erro)

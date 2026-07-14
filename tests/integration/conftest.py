@@ -3,9 +3,10 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from src.main import app
+from src.config import Configuracoes
+from src.main import criar_app
 from src.shared.banco import Base
-from src.shared.dependencias import get_db
+from src.identidade.infraestrutura.bcrypt_provider import BcryptHashProvider
 
 TEST_DATABASE_URL = os.getenv(
     "TEST_DATABASE_URL",
@@ -14,6 +15,13 @@ TEST_DATABASE_URL = os.getenv(
 
 engine_teste = create_engine(TEST_DATABASE_URL)
 SessionTeste = sessionmaker(autocommit=False, autoflush=False, bind=engine_teste)
+
+
+def _config_teste() -> Configuracoes:
+    return Configuracoes(
+        database_url=TEST_DATABASE_URL,
+        secret_key="test-secret-key-32-chars-length",
+    )
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -41,13 +49,21 @@ def limpar_banco(db):
 
 
 @pytest.fixture
-def client(db):
+def app_test():
+    return criar_app(_config_teste())
+
+
+@pytest.fixture
+def client(app_test, db):
+    container = app_test.state.container
+
     def override_get_db():
         yield db
 
-    app.dependency_overrides[get_db] = override_get_db
-    yield TestClient(app)
-    app.dependency_overrides.clear()
+    original_get_db = container.get_db
+    container.get_db = override_get_db
+    yield TestClient(app_test)
+    container.get_db = original_get_db
 
 
 @pytest.fixture
@@ -56,10 +72,13 @@ def token_admin(client, db):
     from src.identidade.dominio.entidades import PerfilUsuario
     from src.identidade.infraestrutura.repositorios import UsuarioRepositorioImpl
 
-    CriarUsuario(UsuarioRepositorioImpl(db)).executar(
+    hash_provider = BcryptHashProvider()
+    CriarUsuario(UsuarioRepositorioImpl(db), hash_provider).executar(
         email="admin@oficina.com", senha="senha123", perfil=PerfilUsuario.ADMIN
     )
-    resposta = client.post("/auth/login", json={"email": "admin@oficina.com", "senha": "senha123"})
+    resposta = client.post(
+        "/auth/login", json={"email": "admin@oficina.com", "senha": "senha123"}
+    )
     return resposta.json()["token"]
 
 

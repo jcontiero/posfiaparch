@@ -1,19 +1,27 @@
 def _cadastrar_servico(client, headers, nome="Troca de óleo"):
-    return client.post("/servicos", json={
-        "nome": nome,
-        "descricao": "Troca de óleo do motor",
-        "preco_base": "150.00",
-        "tempo_estimado_minutos": 60,
-    }, headers=headers).json()
+    return client.post(
+        "/servicos",
+        json={
+            "nome": nome,
+            "descricao": "Troca de óleo do motor",
+            "preco_base": "150.00",
+            "tempo_estimado_minutos": 60,
+        },
+        headers=headers,
+    ).json()
 
 
 def test_cadastrar_servico(client, headers_admin):
-    resposta = client.post("/servicos", json={
-        "nome": "Troca de óleo",
-        "descricao": "Troca de óleo do motor",
-        "preco_base": "150.00",
-        "tempo_estimado_minutos": 60,
-    }, headers=headers_admin)
+    resposta = client.post(
+        "/servicos",
+        json={
+            "nome": "Troca de óleo",
+            "descricao": "Troca de óleo do motor",
+            "preco_base": "150.00",
+            "tempo_estimado_minutos": 60,
+        },
+        headers=headers_admin,
+    )
 
     assert resposta.status_code == 201
     dados = resposta.json()
@@ -41,14 +49,18 @@ def test_filtrar_servicos_por_nome(client, headers_admin):
 
 def test_atualizar_servico(client, headers_admin):
     servico = _cadastrar_servico(client, headers_admin)
-    resposta = client.put(f"/servicos/{servico['id']}",
-                          json={"preco_base": "180.00"}, headers=headers_admin)
+    resposta = client.put(
+        f"/servicos/{servico['id']}",
+        json={"preco_base": "180.00"},
+        headers=headers_admin,
+    )
     assert resposta.status_code == 200
     assert resposta.json()["preco_base"] == "180.00"
 
 
 def test_buscar_servico_inexistente(client, headers_admin):
     from uuid import uuid4
+
     resposta = client.get(f"/servicos/{uuid4()}", headers=headers_admin)
     assert resposta.status_code == 404
 

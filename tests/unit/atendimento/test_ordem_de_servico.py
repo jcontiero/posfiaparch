@@ -1,21 +1,25 @@
 import pytest
 from uuid import uuid4
 from decimal import Decimal
-from src.atendimento.dominio.entidades import OrdemDeServico
+from src.atendimento.dominio.entidades import OrdemDeServico, ItemServico
 from src.atendimento.dominio.value_objects import StatusOS
 from src.atendimento.dominio.excecoes import (
-    TransicaoInvalidaError, OsSemServicosError, ItemNaoEncontradoError,
+    TransicaoInvalidaError,
+    OsSemServicosError,
+    ItemNaoEncontradoError,
 )
 
 
 def _os() -> OrdemDeServico:
     return OrdemDeServico(
-        id=uuid4(), cliente_id=uuid4(), veiculo_id=uuid4(),
+        id=uuid4(),
+        cliente_id=uuid4(),
+        veiculo_id=uuid4(),
         descricao_problema="Barulho no motor",
     )
 
 
-def _os_pronta_para_orcamento() -> tuple[OrdemDeServico, object]:
+def _os_pronta_para_orcamento() -> tuple[OrdemDeServico, ItemServico]:
     """OS em AGUARDANDO_ORCAMENTO com um serviço adicionado."""
     os = _os()
     os.iniciar_diagnostico()
@@ -50,11 +54,11 @@ class TestTransicoesDeStatus:
         with pytest.raises(TransicaoInvalidaError):
             os.iniciar_diagnostico()
 
-    def test_cancelar_apos_orcamento(self):
+    def test_recusar_apos_orcamento_volta_para_diagnostico(self):
         os, _ = _os_pronta_para_orcamento()
         os.gerar_orcamento()
         os.recusar_orcamento()
-        assert os.status == StatusOS.CANCELADA
+        assert os.status == StatusOS.EM_DIAGNOSTICO
 
     def test_entregar_apos_finalizada(self):
         os, item = _os_pronta_para_orcamento()

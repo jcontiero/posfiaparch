@@ -1,5 +1,3 @@
-import pytest
-
 from src.estoque.dominio.excecoes import (
     EstoqueInsuficienteError,
     PecaNaoEncontradaError,
@@ -16,6 +14,7 @@ class TestExcecoesEstoque:
 
     def test_peca_nao_encontrada(self):
         from uuid import uuid4
+
         id_ = uuid4()
         erro = PecaNaoEncontradaError(id_)
         assert str(id_) in str(erro)
