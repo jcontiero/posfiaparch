@@ -18,6 +18,7 @@ resource "helm_release" "postgres" {
   version    = var.chart_version
   namespace  = kubernetes_namespace_v1.this.metadata[0].name
   timeout    = 600
+  wait       = false
 
   set = [
     {
