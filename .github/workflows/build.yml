@@ -238,56 +238,21 @@ jobs:
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
 
-  deploy-k8s:
-    name: Deploy no Kubernetes
-    runs-on: ubuntu-latest
-    needs: terraform
-    if: github.ref == 'refs/heads/main'
-    environment: production
-
-    steps:
-      - name: Checkout do código
-        uses: actions/checkout@v4
-
-      - name: Configurar kubectl
-        uses: azure/setup-kubectl@v4
-        with:
-          version: "v1.32.0"
-
-      - name: Configurar kubeconfig
+      - name: Configurar kubeconfig gerado pelo Terraform
         run: |
           mkdir -p ~/.kube
-          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > ~/.kube/config
+          cp kubeconfig ~/.kube/config
 
       - name: Aplicar manifestos Kubernetes
-        run: kubectl apply -f k8s/
+        run: kubectl apply -f ../k8s/
 
       - name: Aguardar rollout da API
         run: kubectl rollout status deployment/oficina-api -n oficina-api --timeout=180s
 
-  migrate:
-    name: Executar Migrations
-    runs-on: ubuntu-latest
-    needs: deploy-k8s
-    if: github.ref == 'refs/heads/main'
-    environment: production
-
-    steps:
-      - name: Checkout do código
-        uses: actions/checkout@v4
-
-      - name: Configurar kubectl
-        uses: azure/setup-kubectl@v4
-        with:
-          version: "v1.32.0"
-
-      - name: Configurar kubeconfig
-        run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > ~/.kube/config
-
       - name: Aplicar Job de migrations
-        run: kubectl apply -f k8s/job-migrate.yaml
+        run: kubectl apply -f ../k8s/job-migrate.yaml
 
       - name: Aguardar conclusão do Job
         run: kubectl wait --for=condition=complete job/oficina-api-migrate -n oficina-api --timeout=180s
+
+
