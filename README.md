@@ -238,24 +238,8 @@ Secrets esperados: `SONAR_TOKEN`, `DOCKER_USERNAME`, `DOCKER_PASSWORD`, `KUBE_CO
 - [x] Pipeline CI/CD em `.github/workflows/build.yml`
 - [x] README atualizado
 - [x] Collection de APIs em `docs/collection-postman.json`
-- [ ] Vídeo demonstrativo — link será adicionado aqui
-
 ---
 
-## 9. Vídeo demonstrativo
+## 9. Contato
 
-🎥 **Link do vídeo:** _a ser adicionado após gravação_
-
-O vídeo deve demonstrar:
-- Execução local com Docker Compose.
-- Provisionamento do cluster com Terraform.
-- Deploy da aplicação no Kubernetes.
-- Consumo das APIs obrigatórias da Fase 2.
-- Pipeline CI/CD em execução.
-- Escalonamento automático (HPA).
-
----
-
-## 10. Contato
-
-Projeto desenvolvido por Jonas Contiero como Tech Challenge da FIAP Pós Tech em Arquitetura de Software.
+Projeto desenvolvido por **Jonas Vasconcelos** como Tech Challenge da FIAP Pós Tech em Arquitetura de Software.
