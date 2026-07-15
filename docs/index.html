@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oficina Mecânica API · Documentação</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Reset ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+
+/* ── Tokens ── */
+:root{
+  --ink:#171717;
+  --on-primary:#ffffff;
+  --body:#4d4d4d;
+  --mute:#888888;
+  --hairline:#ebebeb;
+  --canvas:#ffffff;
+  --canvas-soft:#fafafa;
+  --canvas-soft-2:#f5f5f5;
+  --link:#0070f3;
+  --grad-develop-a:#007cf0;--grad-develop-b:#00dfd8;
+  --grad-preview-a:#7928ca;--grad-preview-b:#ff0080;
+  --grad-ship-a:#ff4d4d;--grad-ship-b:#f9cb28;
+  --font-sans:Inter,system-ui,-apple-system,sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --shadow-1:0 0 0 1px #00000014 inset;
+  --shadow-2:0px 1px 1px #00000005,0px 2px 2px #0000000a,0 0 0 1px #00000014 inset;
+  --shadow-3:0px 2px 2px #0000000a,0px 8px 8px -8px #0000000a,0 0 0 1px #00000014 inset;
+  --radius-sm:6px;--radius-md:8px;--radius-lg:12px;--radius-pill:100px;
+  --xs:8px;--sm:12px;--md:16px;--lg:24px;--xl:32px;--xxl:40px;--xxxl:48px;--xxxxl:64px;--xxxxxl:96px;
+  --nav-h:64px;
+  --max-w:1200px;
+}
+
+body{
+  font-family:var(--font-sans);font-size:16px;font-weight:400;line-height:24px;
+  color:var(--body);background:var(--canvas-soft);
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+}
+
+/* ── Typography helpers ── */
+.display-xl{font-size:48px;font-weight:600;line-height:48px;letter-spacing:-2.4px;color:var(--ink)}
+.display-lg{font-size:32px;font-weight:600;line-height:40px;letter-spacing:-1.28px;color:var(--ink)}
+.display-md{font-size:24px;font-weight:600;line-height:32px;letter-spacing:-0.96px;color:var(--ink)}
+.body-lg{font-size:18px;font-weight:400;line-height:28px}
+.body-md{font-size:16px;font-weight:400;line-height:24px}
+.body-sm{font-size:14px;font-weight:400;line-height:20px;letter-spacing:-0.28px}
+.caption-mono{font-family:var(--font-mono);font-size:12px;font-weight:400;line-height:18px}
+.eyebrow{font-family:var(--font-mono);font-size:12px;font-weight:500;letter-spacing:0.1em;color:var(--mute);text-transform:uppercase;margin-bottom:var(--sm)}
+
+a{color:var(--link);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ── Layout ── */
+.container{max-width:var(--max-w);margin:0 auto;padding:0 var(--lg)}
+section{padding:var(--xxxxxl) 0}
+
+/* ── Navigation ── */
+.nav{
+  position:sticky;top:0;z-index:100;height:var(--nav-h);
+  background:rgba(250,250,250,.8);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--hairline);
+}
+.nav .container{display:flex;align-items:center;height:100%;gap:var(--xl)}
+.nav-logo{font-weight:600;font-size:16px;color:var(--ink);white-space:nowrap;letter-spacing:-0.5px;flex-shrink:0}
+.nav-logo span{color:var(--mute);font-weight:400}
+.nav-links{display:flex;gap:var(--xs);flex:1;justify-content:center;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{
+  font-size:14px;font-weight:400;color:var(--mute);padding:6px 12px;
+  border-radius:var(--radius-sm);white-space:nowrap;transition:color .15s,background .15s;
+  text-decoration:none;letter-spacing:-0.28px;
+}
+.nav-links a:hover{color:var(--ink);background:var(--canvas-soft-2)}
+.nav-links a.active{color:var(--ink);background:var(--canvas-soft-2)}
+.nav-badge{
+  font-family:var(--font-mono);font-size:12px;color:var(--mute);
+  border:1px solid var(--hairline);border-radius:var(--radius-pill);
+  padding:4px 12px;white-space:nowrap;flex-shrink:0;
+}
+
+/* ── Hero ── */
+.hero{
+  position:relative;overflow:hidden;
+  padding:var(--xxxxxl) 0 var(--xxxxl);text-align:center;
+}
+.hero-mesh{
+  position:absolute;inset:0;z-index:0;opacity:.12;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 40%,var(--grad-develop-a),transparent),
+    radial-gradient(ellipse 50% 60% at 80% 30%,var(--grad-preview-b),transparent),
+    radial-gradient(ellipse 70% 40% at 50% 80%,var(--grad-ship-b),transparent),
+    radial-gradient(ellipse 40% 50% at 70% 60%,var(--grad-develop-b),transparent);
+  filter:blur(60px);
+}
+.hero .container{position:relative;z-index:1}
+.hero h1{margin-bottom:var(--lg)}
+.hero .subtitle{font-size:18px;line-height:28px;color:var(--body);max-width:640px;margin:0 auto var(--xxl)}
+.hero-actions{display:flex;gap:var(--md);justify-content:center;flex-wrap:wrap;margin-bottom:var(--xxl)}
+.btn{
+  display:inline-flex;align-items:center;gap:var(--xs);
+  font-family:var(--font-sans);font-size:14px;font-weight:500;
+  padding:10px 24px;border-radius:var(--radius-pill);border:none;cursor:pointer;
+  transition:transform .15s,box-shadow .15s,opacity .15s;text-decoration:none;
+}
+.btn:hover{transform:translateY(-1px);text-decoration:none}
+.btn-primary{background:var(--ink);color:var(--on-primary)}
+.btn-primary:hover{opacity:.85}
+.btn-secondary{background:var(--canvas);color:var(--ink);border:1px solid var(--hairline);box-shadow:var(--shadow-2)}
+.btn-secondary:hover{box-shadow:var(--shadow-3)}
+
+.hero-badges{display:flex;gap:var(--xs);justify-content:center;flex-wrap:wrap}
+.hero-badges span{
+  font-family:var(--font-mono);font-size:12px;font-weight:400;color:var(--mute);
+  padding:4px 12px;border:1px solid var(--hairline);border-radius:var(--radius-pill);
+  background:var(--canvas);
+}
+
+/* ── Cards ── */
+.card{
+  background:var(--canvas);border-radius:var(--radius-md);
+  box-shadow:var(--shadow-2);padding:var(--lg);
+}
+.card-lg{border-radius:var(--radius-lg);padding:var(--xl)}
+
+/* ── Section header ── */
+.section-header{margin-bottom:var(--xxl)}
+.section-header h2{margin-top:0}
+
+/* ── Arquitetura ── */
+.arch-diagram-wrapper{margin-bottom:var(--xxl)}
+.arch-diagram-wrapper svg{width:100%;height:auto;display:block}
+
+.arch-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:var(--md);margin-bottom:var(--xxl);
+}
+.arch-grid .card .card-number{
+  font-family:var(--font-mono);font-size:12px;color:var(--mute);margin-bottom:var(--xs);
+}
+.arch-grid .card h3{font-size:16px;font-weight:600;color:var(--ink);margin-bottom:var(--xs);letter-spacing:-0.5px}
+.arch-grid .card p{font-size:14px;line-height:20px;letter-spacing:-0.28px;color:var(--body)}
+
+.modules-row{display:flex;gap:var(--sm);flex-wrap:wrap;justify-content:center}
+.module-box{
+  font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--ink);
+  padding:10px 20px;background:var(--canvas);border:1px solid var(--hairline);
+  border-radius:var(--radius-sm);box-shadow:var(--shadow-1);
+}
+
+/* ── Modelo de Dados ── */
+.er-diagram-wrapper{overflow-x:auto}
+.er-diagram-wrapper svg{display:block;margin:0 auto;max-width:100%;height:auto}
+
+/* ── Regras ── */
+.rules-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--md)}
+.rule-card{display:flex;gap:var(--md);align-items:flex-start}
+.rule-card .rule-num{
+  font-family:var(--font-mono);font-size:14px;font-weight:500;color:var(--link);
+  background:rgba(0,112,243,.06);width:36px;height:36px;border-radius:var(--radius-sm);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.rule-card h3{font-size:16px;font-weight:600;color:var(--ink);margin-bottom:4px;letter-spacing:-0.5px}
+.rule-card p{font-size:14px;line-height:20px;letter-spacing:-0.28px;color:var(--body)}
+
+/* ── Fluxo OS ── */
+.flow-diagram-wrapper{overflow-x:auto;margin-bottom:var(--xxl)}
+.flow-diagram-wrapper svg{display:block;margin:0 auto;height:auto}
+
+.flow-table{width:100%;border-collapse:collapse}
+.flow-table th{
+  font-family:var(--font-mono);font-size:12px;font-weight:500;letter-spacing:0.05em;
+  color:var(--mute);text-transform:uppercase;text-align:left;
+  padding:var(--sm) var(--md);border-bottom:1px solid var(--hairline);
+}
+.flow-table td{
+  font-size:14px;line-height:20px;letter-spacing:-0.28px;padding:var(--sm) var(--md);
+  border-bottom:1px solid var(--hairline);color:var(--body);vertical-align:middle;
+}
+.flow-table tr:last-child td{border-bottom:none}
+.flow-table code{
+  font-family:var(--font-mono);font-size:13px;background:var(--canvas-soft-2);
+  padding:2px 6px;border-radius:4px;color:var(--ink);
+}
+.arrow-cell{font-family:var(--font-mono);color:var(--mute)}
+.profile-badge{
+  font-family:var(--font-mono);font-size:11px;font-weight:500;
+  padding:2px 8px;border-radius:var(--radius-pill);
+  background:var(--canvas-soft-2);color:var(--body);white-space:nowrap;
+}
+
+/* ── APIs ── */
+.api-table{width:100%;border-collapse:collapse}
+.api-table th{
+  font-family:var(--font-mono);font-size:12px;font-weight:500;letter-spacing:0.05em;
+  color:var(--mute);text-transform:uppercase;text-align:left;
+  padding:var(--sm) var(--md);border-bottom:1px solid var(--hairline);
+}
+.api-table td{
+  font-size:14px;line-height:20px;letter-spacing:-0.28px;padding:var(--sm) var(--md);
+  border-bottom:1px solid var(--hairline);color:var(--body);vertical-align:middle;
+}
+.api-table tr:last-child td{border-bottom:none}
+.method-badge{
+  font-family:var(--font-mono);font-size:11px;font-weight:500;
+  padding:3px 10px;border-radius:var(--radius-pill);color:var(--on-primary);
+  display:inline-block;min-width:48px;text-align:center;
+}
+.method-get{background:var(--link)}
+.method-post{background:var(--ink)}
+.route-mono{font-family:var(--font-mono);font-size:13px;color:var(--ink)}
+
+/* ── Stack ── */
+.stack-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:var(--md)}
+.stack-card{text-align:center;padding:var(--lg) var(--md)}
+.stack-card .stack-icon{font-size:28px;margin-bottom:var(--sm)}
+.stack-card h3{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:4px;letter-spacing:-0.3px}
+.stack-card p{font-size:12px;line-height:18px;color:var(--mute)}
+
+/* ── DevOps ── */
+.pipeline-wrapper{overflow-x:auto;margin-bottom:var(--lg)}
+.pipeline-wrapper svg{display:block;margin:0 auto;height:auto}
+.pipeline-triggers{text-align:center;font-size:14px;color:var(--mute);line-height:20px}
+.pipeline-triggers code{
+  font-family:var(--font-mono);font-size:13px;background:var(--canvas-soft-2);
+  padding:2px 6px;border-radius:4px;color:var(--ink);
+}
+
+/* ── Footer ── */
+.footer{
+  border-top:1px solid var(--hairline);padding:var(--xl) 0;
+}
+.footer .container{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--md)}
+.footer-left{font-size:14px;color:var(--mute);letter-spacing:-0.28px}
+.footer-right{font-size:14px;color:var(--mute);letter-spacing:-0.28px}
+
+/* ── Responsive ── */
+@media(max-width:1024px){
+  .arch-grid{grid-template-columns:repeat(2,1fr)}
+  .stack-grid{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:768px){
+  :root{--xxxxxl:64px;--xxxxl:48px}
+  .display-xl{font-size:36px;line-height:40px;letter-spacing:-1.8px}
+  .display-lg{font-size:26px;line-height:34px;letter-spacing:-1px}
+  .arch-grid{grid-template-columns:1fr}
+  .rules-grid{grid-template-columns:1fr}
+  .stack-grid{grid-template-columns:repeat(2,1fr)}
+  .nav-links{display:none}
+  .nav-badge{margin-left:auto}
+  .api-table,
+  .flow-table{font-size:13px}
+  .api-table td,.api-table th,
+  .flow-table td,.flow-table th{padding:var(--xs) var(--sm)}
+}
+@media(max-width:480px){
+  .display-xl{font-size:28px;line-height:32px;letter-spacing:-1.4px}
+  .stack-grid{grid-template-columns:1fr 1fr}
+  .hero-actions{flex-direction:column;align-items:center}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ Navigation ═══════════════ -->
+<nav class="nav" id="navbar">
+  <div class="container">
+    <div class="nav-logo">Oficina Mecânica <span>API</span></div>
+    <div class="nav-links">
+      <a href="#visao-geral">Visão Geral</a>
+      <a href="#arquitetura">Arquitetura</a>
+      <a href="#modelo-dados">Modelo de Dados</a>
+      <a href="#regras">Regras</a>
+      <a href="#fluxo-os">Fluxo da OS</a>
+      <a href="#apis">APIs</a>
+      <a href="#stack">Stack</a>
+      <a href="#devops">DevOps</a>
+    </div>
+    <div class="nav-badge">v0.2.0 · Fase 2</div>
+  </div>
+</nav>
+
+<!-- ═══════════════ Hero ═══════════════ -->
+<section class="hero" id="visao-geral">
+  <div class="container">
+    <h1 class="display-xl">Oficina Mecânica API.</h1>
+    <p class="subtitle">Sistema Integrado de Atendimento e Execução de Serviços — Tech Challenge Pós Tech FIAP, Fase 2.</p>
+    <div class="hero-actions">
+      <a href="#apis" class="btn btn-primary">Documentação Swagger</a>
+      <a href="#" class="btn btn-secondary">GitHub</a>
+    </div>
+    <div class="hero-badges">
+      <span>Clean Architecture</span>
+      <span>DDD</span>
+      <span>Kubernetes</span>
+      <span>Terraform</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ Arquitetura ═══════════════ -->
+<section id="arquitetura">
+  <div class="container">
+    <div class="section-header">
+      <p class="eyebrow">ARQUITETURA</p>
+      <h2 class="display-lg">Clean Architecture com 4 camadas.</h2>
+    </div>
+
+    <div class="arch-diagram-wrapper card card-lg" style="margin-bottom:var(--xxl);padding:var(--xl);background:#ffffff">
+      <svg viewBox="0 0 960 480" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;max-width:960px;margin:0 auto;display:block">
+        <defs>
+          <marker id="arrow-gray" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="#a1a1a1"/></marker>
+          <marker id="arrow-blue" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="#0070f3"/></marker>
+          <linearGradient id="grad-blue" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#007cf0"/><stop offset="100%" stop-color="#00dfd8"/></linearGradient>
+        </defs>
+
+        <!-- Client Box -->
+        <rect x="20" y="160" width="140" height="64" rx="8" fill="#ffffff" stroke="#ebebeb" stroke-width="1.5"/>
+        <text x="90" y="192" font-family="Inter,sans-serif" font-size="14" font-weight="600" fill="#171717" text-anchor="middle">Client App</text>
+        <text x="90" y="210" font-family="JetBrains Mono,monospace" font-size="11" fill="#888" text-anchor="middle">Browser / Mobile</text>
+
+        <!-- Seta HTTP -->
+        <path d="M160 192 L230 192" stroke="#0070f3" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+        <text x="195" y="184" font-family="JetBrains Mono,monospace" font-size="11" fill="#0070f3" text-anchor="middle">HTTP/JSON</text>
+
+        <!-- Monolith BG -->
+        <rect x="240" y="30" width="500" height="420" rx="12" fill="#fafafa" stroke="#ebebeb" stroke-width="1.5"/>
+        <text x="490" y="60" font-family="JetBrains Mono,monospace" font-size="11" font-weight="600" fill="#888" letter-spacing="0.1em" text-anchor="middle">OFICINA MECÂNICA API (MONOLITO)</text>
+
+        <!-- Camada: Apresentação -->
+        <rect x="270" y="80" width="440" height="64" rx="8" fill="#ffffff" stroke="#ebebeb" stroke-width="1.5"/>
+        <text x="490" y="112" font-family="Inter,sans-serif" font-size="14" font-weight="600" fill="#171717" text-anchor="middle">Apresentação (API Gateway)</text>
+        <text x="490" y="130" font-family="JetBrains Mono,monospace" font-size="11" fill="#888" text-anchor="middle">FastAPI, Rotas, Pydantic Schemas</text>
+
+        <!-- Setas verticais descendo -->
+        <path d="M490 144 L490 170" stroke="#a1a1a1" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+
+        <!-- Camada: Aplicação -->
+        <rect x="270" y="180" width="440" height="64" rx="8" fill="#ffffff" stroke="#ebebeb" stroke-width="1.5"/>
+        <text x="490" y="212" font-family="Inter,sans-serif" font-size="14" font-weight="600" fill="#171717" text-anchor="middle">Aplicação</text>
+        <text x="490" y="230" font-family="JetBrains Mono,monospace" font-size="11" fill="#888" text-anchor="middle">Casos de Uso, Ports (Interfaces)</text>
+
+        <!-- Setas verticais Aplicação -> Domínio & Infra -->
+        <path d="M380 244 L380 270" stroke="#a1a1a1" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+        <path d="M600 244 L600 270" stroke="#a1a1a1" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+
+        <!-- Camada: Domínio -->
+        <rect x="270" y="280" width="220" height="74" rx="8" fill="#ffffff" stroke="url(#grad-blue)" stroke-width="2"/>
+        <text x="380" y="310" font-family="Inter,sans-serif" font-size="14" font-weight="600" fill="#171717" text-anchor="middle">Domínio</text>
+        <text x="380" y="328" font-family="JetBrains Mono,monospace" font-size="11" fill="#888" text-anchor="middle">Entidades, Value Objects</text>
+        <text x="380" y="344" font-family="JetBrains Mono,monospace" font-size="11" fill="#888" text-anchor="middle">Exceções e Regras</text>
+
+        <!-- Camada: Infraestrutura -->
+        <rect x="510" y="280" width="200" height="74" rx="8" fill="#ffffff" stroke="#ebebeb" stroke-width="1.5"/>
+        <text x="610" y="310" font-family="Inter,sans-serif" font-size="14" font-weight="600" fill="#171717" text-anchor="middle">Infraestrutura</text>
+        <text x="610" y="328" font-family="JetBrains Mono,monospace" font-size="11" fill="#888" text-anchor="middle">Adapters (SQLAlchemy,</text>
+        <text x="610" y="344" font-family="JetBrains Mono,monospace" font-size="11" fill="#888" text-anchor="middle">JWT, SMTP)</text>
+
+        <!-- Seta dependência Infra -> Domínio -->
+        <path d="M510 317 L496 317" stroke="#a1a1a1" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrow-gray)"/>
+
+        <!-- Box de Módulos (Cross-cutting) -->
+        <rect x="270" y="374" width="440" height="56" rx="8" fill="rgba(0,0,0,0.02)" stroke="#ebebeb" stroke-width="1" stroke-dasharray="4 4"/>
+        <text x="490" y="396" font-family="JetBrains Mono,monospace" font-size="10" font-weight="500" fill="#888" text-anchor="middle">MÓDULOS DE NEGÓCIO</text>
+        <text x="490" y="416" font-family="Inter,sans-serif" font-size="13" font-weight="500" fill="#171717" text-anchor="middle">Identidade · Atendimento · Catálogo · Estoque · Relatórios</text>
+
+        <!-- External Systems -->
+        <rect x="790" y="220" width="140" height="64" rx="8" fill="#ffffff" stroke="#ebebeb" stroke-width="1.5"/>
+        <text x="860" y="252" font-family="Inter,sans-serif" font-size="14" font-weight="600" fill="#171717" text-anchor="middle">PostgreSQL</text>
+        <text x="860" y="270" font-family="JetBrains Mono,monospace" font-size="11" fill="#888" text-anchor="middle">Banco de Dados</text>
+
+        <rect x="790" y="310" width="140" height="64" rx="8" fill="#ffffff" stroke="#ebebeb" stroke-width="1.5"/>
+        <text x="860" y="342" font-family="Inter,sans-serif" font-size="14" font-weight="600" fill="#171717" text-anchor="middle">Serviço SMTP</text>
+        <text x="860" y="360" font-family="JetBrains Mono,monospace" font-size="11" fill="#888" text-anchor="middle">E-mail</text>
+
+        <!-- Setas Infra -> Externo -->
+        <path d="M710 290 L782 260" stroke="#a1a1a1" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+        <path d="M710 326 L782 336" stroke="#a1a1a1" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+
+      </svg>
+    </div>
+
+    <div class="arch-grid">
+      <div class="card">
+        <div class="card-number">01</div>
+        <h3>Domínio</h3>
+        <p>Entidades, Value Objects, exceções e regras puras. Sem dependências externas.</p>
+      </div>
+      <div class="card">
+        <div class="card-number">02</div>
+        <h3>Aplicação</h3>
+        <p>Casos de uso e ports (interfaces). Depende apenas do domínio.</p>
+      </div>
+      <div class="card">
+        <div class="card-number">03</div>
+        <h3>Infraestrutura</h3>
+        <p>Adapters: SQLAlchemy, JWT, bcrypt, SMTP. Implementa os ports.</p>
+      </div>
+      <div class="card">
+        <div class="card-number">04</div>
+        <h3>Apresentação</h3>
+        <p>Rotas FastAPI + Schemas Pydantic. Injeção via Depends.</p>
+      </div>
+    </div>
+
+    <div class="modules-row">
+      <div class="module-box">Identidade</div>
+      <div class="module-box">Atendimento</div>
+      <div class="module-box">Catálogo</div>
+      <div class="module-box">Estoque</div>
+      <div class="module-box">Relatórios</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ Modelo de Dados ═══════════════ -->
+<section id="modelo-dados">
+  <div class="container">
+    <div class="section-header">
+      <p class="eyebrow">MODELO DE DADOS</p>
+      <h2 class="display-lg">Entidades e relacionamentos.</h2>
+    </div>
+
+    <div class="card card-lg er-diagram-wrapper">
+      <svg viewBox="0 0 980 720" fill="none" xmlns="http://www.w3.org/2000/svg" style="min-width:800px">
+        <style>
+          .er-entity{fill:#ffffff;stroke:#ebebeb;stroke-width:1}
+          .er-header{fill:#fafafa;stroke:#ebebeb;stroke-width:1}
+          .er-title{font-family:Inter,sans-serif;font-size:13px;font-weight:600;fill:#171717}
+          .er-field{font-family:'JetBrains Mono',monospace;font-size:10.5px;fill:#4d4d4d}
+          .er-pk{fill:#0070f3}
+          .er-fk{fill:#7928ca}
+          .er-line{stroke:#ebebeb;stroke-width:1.2;fill:none}
+          .er-label{font-family:'JetBrains Mono',monospace;font-size:9px;fill:#888}
+        </style>
+
+        <!-- Cliente -->
+        <rect class="er-entity" x="20" y="20" width="220" height="160" rx="8"/>
+        <rect class="er-header" x="20" y="20" width="220" height="32" rx="8"/>
+        <rect fill="#fafafa" x="20" y="44" width="220" height="8"/>
+        <text class="er-title" x="130" y="42" text-anchor="middle">Cliente</text>
+        <text class="er-field er-pk" x="32" y="72">id UUID PK</text>
+        <text class="er-field" x="32" y="90">nome</text>
+        <text class="er-field" x="32" y="108">cpf | null</text>
+        <text class="er-field" x="32" y="126">cnpj | null</text>
+        <text class="er-field" x="32" y="144">email</text>
+        <text class="er-field" x="32" y="162">telefone</text>
+
+        <!-- Veículo -->
+        <rect class="er-entity" x="20" y="240" width="220" height="178" rx="8"/>
+        <rect class="er-header" x="20" y="240" width="220" height="32" rx="8"/>
+        <rect fill="#fafafa" x="20" y="264" width="220" height="8"/>
+        <text class="er-title" x="130" y="262" text-anchor="middle">Veículo</text>
+        <text class="er-field er-pk" x="32" y="292">id UUID PK</text>
+        <text class="er-field er-fk" x="32" y="310">cliente_id FK</text>
+        <text class="er-field" x="32" y="328">placa UNIQUE</text>
+        <text class="er-field" x="32" y="346">marca</text>
+        <text class="er-field" x="32" y="364">modelo</text>
+        <text class="er-field" x="32" y="382">ano</text>
+        <text class="er-field" x="32" y="400">cor</text>
+
+        <!-- OrdemDeServico -->
+        <rect class="er-entity" x="340" y="100" width="260" height="232" rx="8"/>
+        <rect class="er-header" x="340" y="100" width="260" height="32" rx="8"/>
+        <rect fill="#fafafa" x="340" y="124" width="260" height="8"/>
+        <text class="er-title" x="470" y="122" text-anchor="middle">OrdemDeServico</text>
+        <text class="er-field er-pk" x="352" y="152">id UUID PK</text>
+        <text class="er-field er-fk" x="352" y="170">cliente_id FK</text>
+        <text class="er-field er-fk" x="352" y="188">veiculo_id FK</text>
+        <text class="er-field" x="352" y="206">descricao_problema</text>
+        <text class="er-field" x="352" y="224">status StatusOS</text>
+        <text class="er-field" x="352" y="242">valor_orcamento</text>
+        <text class="er-field" x="352" y="260">laudo_diagnostico</text>
+        <text class="er-field" x="352" y="278">criada_em</text>
+        <text class="er-field" x="352" y="296">atualizada_em</text>
+
+        <!-- ItemServico -->
+        <rect class="er-entity" x="700" y="20" width="260" height="178" rx="8"/>
+        <rect class="er-header" x="700" y="20" width="260" height="32" rx="8"/>
+        <rect fill="#fafafa" x="700" y="44" width="260" height="8"/>
+        <text class="er-title" x="830" y="42" text-anchor="middle">ItemServico</text>
+        <text class="er-field er-pk" x="712" y="72">id UUID PK</text>
+        <text class="er-field er-fk" x="712" y="90">os_id FK</text>
+        <text class="er-field er-fk" x="712" y="108">servico_id FK</text>
+        <text class="er-field" x="712" y="126">descricao</text>
+        <text class="er-field" x="712" y="144">preco_unitario</text>
+        <text class="er-field" x="712" y="162">concluido</text>
+        <text class="er-field" x="712" y="180">concluido_em</text>
+
+        <!-- ItemPeca -->
+        <rect class="er-entity" x="700" y="240" width="260" height="158" rx="8"/>
+        <rect class="er-header" x="700" y="240" width="260" height="32" rx="8"/>
+        <rect fill="#fafafa" x="700" y="264" width="260" height="8"/>
+        <text class="er-title" x="830" y="262" text-anchor="middle">ItemPeca</text>
+        <text class="er-field er-pk" x="712" y="292">id UUID PK</text>
+        <text class="er-field er-fk" x="712" y="310">os_id FK</text>
+        <text class="er-field er-fk" x="712" y="328">peca_id FK</text>
+        <text class="er-field" x="712" y="346">descricao</text>
+        <text class="er-field" x="712" y="364">quantidade</text>
+        <text class="er-field" x="712" y="382">preco_unitario</text>
+
+        <!-- Servico (Catálogo) -->
+        <rect class="er-entity" x="700" y="450" width="260" height="140" rx="8"/>
+        <rect class="er-header" x="700" y="450" width="260" height="32" rx="8"/>
+        <rect fill="#fafafa" x="700" y="474" width="260" height="8"/>
+        <text class="er-title" x="830" y="472" text-anchor="middle">Servico</text>
+        <text class="er-label" x="920" y="472">Catálogo</text>
+        <text class="er-field er-pk" x="712" y="502">id UUID PK</text>
+        <text class="er-field" x="712" y="520">nome</text>
+        <text class="er-field" x="712" y="538">descricao</text>
+        <text class="er-field" x="712" y="556">preco_base</text>
+        <text class="er-field" x="712" y="574">tempo_estimado_min</text>
+
+        <!-- Peca (Estoque) -->
+        <rect class="er-entity" x="340" y="450" width="260" height="158" rx="8"/>
+        <rect class="er-header" x="340" y="450" width="260" height="32" rx="8"/>
+        <rect fill="#fafafa" x="340" y="474" width="260" height="8"/>
+        <text class="er-title" x="470" y="472" text-anchor="middle">Peca</text>
+        <text class="er-label" x="545" y="472">Estoque</text>
+        <text class="er-field er-pk" x="352" y="502">id UUID PK</text>
+        <text class="er-field" x="352" y="520">nome</text>
+        <text class="er-field" x="352" y="538">codigo</text>
+        <text class="er-field" x="352" y="556">preco_unitario</text>
+        <text class="er-field" x="352" y="574">qtd_disponivel</text>
+        <text class="er-field" x="352" y="592">qtd_minima_alerta</text>
+
+        <!-- Relationships -->
+        <!-- Cliente 1:N Veículo -->
+        <path class="er-line" d="M130 180 L130 240" marker-end="url(#arrowhead)"/>
+        <text class="er-label" x="118" y="195">1</text>
+        <text class="er-label" x="118" y="235">N</text>
+
+        <!-- Cliente 1:N OS -->
+        <path class="er-line" d="M240 100 L340 170"/>
+        <text class="er-label" x="255" y="118">1</text>
+        <text class="er-label" x="325" y="162">N</text>
+
+        <!-- Veículo 1:N OS -->
+        <path class="er-line" d="M240 330 L340 230"/>
+        <text class="er-label" x="255" y="325">1</text>
+        <text class="er-label" x="325" y="238">N</text>
+
+        <!-- OS 1:N ItemServico -->
+        <path class="er-line" d="M600 160 L700 110"/>
+        <text class="er-label" x="610" y="152">1</text>
+        <text class="er-label" x="688" y="108">N</text>
+
+        <!-- OS 1:N ItemPeca -->
+        <path class="er-line" d="M600 260 L700 310"/>
+        <text class="er-label" x="610" y="255">1</text>
+        <text class="er-label" x="688" y="312">N</text>
+
+        <!-- ItemServico N:1 Servico -->
+        <path class="er-line" d="M830 198 L830 450" stroke-dasharray="4 3"/>
+        <text class="er-label" x="838" y="215">N</text>
+        <text class="er-label" x="838" y="445">1</text>
+
+        <!-- ItemPeca N:1 Peca -->
+        <path class="er-line" d="M700 370 L600 490" stroke-dasharray="4 3"/>
+        <text class="er-label" x="688" y="378">N</text>
+        <text class="er-label" x="608" y="486">1</text>
+
+        <defs>
+          <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#ebebeb"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ Regras de Negócio ═══════════════ -->
+<section id="regras">
+  <div class="container">
+    <div class="section-header">
+      <p class="eyebrow">REGRAS DE NEGÓCIO</p>
+      <h2 class="display-lg">Invariantes do domínio.</h2>
+    </div>
+
+    <div class="rules-grid">
+      <div class="card rule-card">
+        <div class="rule-num">01</div>
+        <div>
+          <h3>Documento do Cliente</h3>
+          <p>CPF ou CNPJ — nunca ambos, nunca nenhum.</p>
+        </div>
+      </div>
+      <div class="card rule-card">
+        <div class="rule-num">02</div>
+        <div>
+          <h3>Placa imutável</h3>
+          <p>Placa é imutável após cadastro. Formato ABC1234 ou Mercosul.</p>
+        </div>
+      </div>
+      <div class="card rule-card">
+        <div class="rule-num">03</div>
+        <div>
+          <h3>OS ativa por veículo</h3>
+          <p>Máximo 1 OS ativa por veículo.</p>
+        </div>
+      </div>
+      <div class="card rule-card">
+        <div class="rule-num">04</div>
+        <div>
+          <h3>Adição de itens</h3>
+          <p>Serviços e peças só em EM_DIAGNOSTICO ou AGUARDANDO_ORCAMENTO.</p>
+        </div>
+      </div>
+      <div class="card rule-card">
+        <div class="rule-num">05</div>
+        <div>
+          <h3>Preço congelado</h3>
+          <p>Preço congelado no momento da adição. Nunca editável depois.</p>
+        </div>
+      </div>
+      <div class="card rule-card">
+        <div class="rule-num">06</div>
+        <div>
+          <h3>Reserva de estoque</h3>
+          <p>Reserva na aprovação do orçamento. Estoque insuficiente → HTTP 422.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ Fluxo da OS ═══════════════ -->
+<section id="fluxo-os">
+  <div class="container">
+    <div class="section-header">
+      <p class="eyebrow">CICLO DE VIDA</p>
+      <h2 class="display-lg">Máquina de estados da Ordem de Serviço.</h2>
+    </div>
+
+    <div class="card card-lg flow-diagram-wrapper">
+      <svg viewBox="0 0 1100 200" fill="none" xmlns="http://www.w3.org/2000/svg" style="min-width:900px">
+        <style>
+          .state-box{fill:#ffffff;stroke:#0070f3;stroke-width:1.2;rx:8}
+          .state-cancel{fill:#ffffff;stroke:#ff4d4d;stroke-width:1.2;rx:8}
+          .state-text{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:500;fill:#171717;text-anchor:middle}
+          .flow-arrow{stroke:#0070f3;stroke-width:1.2;fill:none;marker-end:url(#flowArrow)}
+          .cancel-arrow{stroke:#ff4d4d;stroke-width:1.2;fill:none;marker-end:url(#cancelArrow)}
+        </style>
+        <defs>
+          <marker id="flowArrow" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#0070f3"/></marker>
+          <marker id="cancelArrow" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#ff4d4d"/></marker>
+        </defs>
+
+        <!-- States: happy path -->
+        <rect class="state-box" x="10" y="60" width="100" height="36" rx="8"/>
+        <text class="state-text" x="60" y="83">RECEBIDA</text>
+
+        <rect class="state-box" x="140" y="60" width="120" height="36" rx="8"/>
+        <text class="state-text" x="200" y="83">EM_DIAGNOSTICO</text>
+
+        <rect class="state-box" x="290" y="60" width="120" height="36" rx="8"/>
+        <text class="state-text" x="350" y="76">AGUARDANDO</text>
+        <text class="state-text" x="350" y="88">_ORCAMENTO</text>
+
+        <rect class="state-box" x="440" y="60" width="120" height="36" rx="8"/>
+        <text class="state-text" x="500" y="76">AGUARDANDO</text>
+        <text class="state-text" x="500" y="88">_APROVACAO</text>
+
+        <rect class="state-box" x="590" y="60" width="110" height="36" rx="8"/>
+        <text class="state-text" x="645" y="83">EM_EXECUCAO</text>
+
+        <rect class="state-box" x="730" y="60" width="110" height="36" rx="8"/>
+        <text class="state-text" x="785" y="76">SERVICOS</text>
+        <text class="state-text" x="785" y="88">_CONCLUIDOS</text>
+
+        <rect class="state-box" x="870" y="60" width="100" height="36" rx="8"/>
+        <text class="state-text" x="920" y="83">FINALIZADA</text>
+
+        <rect class="state-box" x="1000" y="60" width="90" height="36" rx="8" style="stroke:#00dfd8"/>
+        <text class="state-text" x="1045" y="83" style="fill:#007cf0">ENTREGUE</text>
+
+        <!-- Cancel state -->
+        <rect class="state-cancel" x="440" y="150" width="120" height="36" rx="8"/>
+        <text class="state-text" x="500" y="173" style="fill:#ff4d4d">CANCELADA</text>
+
+        <!-- Happy path arrows -->
+        <line class="flow-arrow" x1="110" y1="78" x2="140" y2="78"/>
+        <line class="flow-arrow" x1="260" y1="78" x2="290" y2="78"/>
+        <line class="flow-arrow" x1="410" y1="78" x2="440" y2="78"/>
+        <line class="flow-arrow" x1="560" y1="78" x2="590" y2="78"/>
+        <line class="flow-arrow" x1="700" y1="78" x2="730" y2="78"/>
+        <line class="flow-arrow" x1="840" y1="78" x2="870" y2="78"/>
+        <line class="flow-arrow" x1="970" y1="78" x2="1000" y2="78"/>
+
+        <!-- Cancel arrow -->
+        <path class="cancel-arrow" d="M500 96 L500 150"/>
+      </svg>
+    </div>
+
+    <div class="card card-lg" style="margin-top:var(--lg)">
+      <table class="flow-table">
+        <thead>
+          <tr>
+            <th>De</th>
+            <th></th>
+            <th>Para</th>
+            <th>Ação / Perfil</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>RECEBIDA</code></td>
+            <td class="arrow-cell">→</td>
+            <td><code>EM_DIAGNOSTICO</code></td>
+            <td><code>iniciar_diagnostico()</code> <span class="profile-badge">MECÂNICO</span></td>
+          </tr>
+          <tr>
+            <td><code>EM_DIAGNOSTICO</code></td>
+            <td class="arrow-cell">→</td>
+            <td><code>AGUARDANDO_ORCAMENTO</code></td>
+            <td><code>finalizar_diagnostico()</code> <span class="profile-badge">MECÂNICO</span></td>
+          </tr>
+          <tr>
+            <td><code>AGUARDANDO_ORCAMENTO</code></td>
+            <td class="arrow-cell">→</td>
+            <td><code>AGUARDANDO_APROVACAO</code></td>
+            <td><code>gerar_orcamento()</code> <span class="profile-badge">ADMIN</span></td>
+          </tr>
+          <tr>
+            <td><code>AGUARDANDO_APROVACAO</code></td>
+            <td class="arrow-cell">→</td>
+            <td><code>EM_EXECUCAO</code></td>
+            <td><code>aprovar_orcamento()</code> <span class="profile-badge">Público</span></td>
+          </tr>
+          <tr>
+            <td><code>AGUARDANDO_APROVACAO</code></td>
+            <td class="arrow-cell">→</td>
+            <td><code style="color:#ff4d4d">CANCELADA</code></td>
+            <td><code>recusar_orcamento()</code> <span class="profile-badge">Público</span></td>
+          </tr>
+          <tr>
+            <td><code>EM_EXECUCAO</code></td>
+            <td class="arrow-cell">→</td>
+            <td><code>SERVICOS_CONCLUIDOS</code></td>
+            <td><code>executar_servico()</code> <span class="profile-badge">MECÂNICO</span> <span style="font-size:12px;color:var(--mute)">(auto)</span></td>
+          </tr>
+          <tr>
+            <td><code>SERVICOS_CONCLUIDOS</code></td>
+            <td class="arrow-cell">→</td>
+            <td><code>FINALIZADA</code></td>
+            <td><code>finalizar_os()</code> <span class="profile-badge">ADMIN</span></td>
+          </tr>
+          <tr>
+            <td><code>FINALIZADA</code></td>
+            <td class="arrow-cell">→</td>
+            <td><code>ENTREGUE</code></td>
+            <td><code>entregar_veiculo()</code> <span class="profile-badge">ADMIN</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ APIs ═══════════════ -->
+<section id="apis">
+  <div class="container">
+    <div class="section-header">
+      <p class="eyebrow">ENDPOINTS</p>
+      <h2 class="display-lg">APIs obrigatórias da Fase 2.</h2>
+    </div>
+
+    <div class="card card-lg" style="overflow-x:auto">
+      <table class="api-table">
+        <thead>
+          <tr>
+            <th>Método</th>
+            <th>Rota</th>
+            <th>Descrição</th>
+            <th>Perfil</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="method-badge method-post">POST</span></td>
+            <td class="route-mono">/auth/login</td>
+            <td>Autenticar e obter token JWT</td>
+            <td><span class="profile-badge">Público</span></td>
+          </tr>
+          <tr>
+            <td><span class="method-badge method-post">POST</span></td>
+            <td class="route-mono">/ordens-de-servico</td>
+            <td>Abertura unificada de OS</td>
+            <td><span class="profile-badge">ADMIN</span></td>
+          </tr>
+          <tr>
+            <td><span class="method-badge method-get">GET</span></td>
+            <td class="route-mono">/ordens-de-servico/{id}/status</td>
+            <td>Consultar status</td>
+            <td><span class="profile-badge">Público</span></td>
+          </tr>
+          <tr>
+            <td><span class="method-badge method-post">POST</span></td>
+            <td class="route-mono">/ordens-de-servico/{id}/aprovacao</td>
+            <td>Aprovar/recusar orçamento</td>
+            <td><span class="profile-badge">Público</span></td>
+          </tr>
+          <tr>
+            <td><span class="method-badge method-get">GET</span></td>
+            <td class="route-mono">/ordens-de-servico</td>
+            <td>Listagem ordenada</td>
+            <td><span class="profile-badge">ADMIN</span></td>
+          </tr>
+          <tr>
+            <td><span class="method-badge method-post">POST</span></td>
+            <td class="route-mono">/webhooks/os/{id}/atualizar-status</td>
+            <td>Webhook via e-mail</td>
+            <td><span class="profile-badge">Público</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ Stack ═══════════════ -->
+<section id="stack">
+  <div class="container">
+    <div class="section-header">
+      <p class="eyebrow">STACK</p>
+      <h2 class="display-lg">Tecnologias do projeto.</h2>
+    </div>
+
+    <div class="stack-grid">
+      <div class="card stack-card">
+        <div class="stack-icon">🐍</div>
+        <h3>Python 3.12+</h3>
+        <p>Runtime principal</p>
+      </div>
+      <div class="card stack-card">
+        <div class="stack-icon">⚡</div>
+        <h3>FastAPI</h3>
+        <p>Framework web async</p>
+      </div>
+      <div class="card stack-card">
+        <div class="stack-icon">🐘</div>
+        <h3>PostgreSQL 16</h3>
+        <p>Banco relacional</p>
+      </div>
+      <div class="card stack-card">
+        <div class="stack-icon">🔗</div>
+        <h3>SQLAlchemy 2.0</h3>
+        <p>ORM e mapeamento</p>
+      </div>
+      <div class="card stack-card">
+        <div class="stack-icon">📐</div>
+        <h3>Alembic</h3>
+        <p>Migrações de schema</p>
+      </div>
+      <div class="card stack-card">
+        <div class="stack-icon">🐳</div>
+        <h3>Docker</h3>
+        <p>Containerização</p>
+      </div>
+      <div class="card stack-card">
+        <div class="stack-icon">☸️</div>
+        <h3>Kubernetes</h3>
+        <p>Orquestração</p>
+      </div>
+      <div class="card stack-card">
+        <div class="stack-icon">🏗️</div>
+        <h3>Terraform</h3>
+        <p>Infraestrutura como código</p>
+      </div>
+      <div class="card stack-card">
+        <div class="stack-icon">🔄</div>
+        <h3>GitHub Actions</h3>
+        <p>CI/CD pipeline</p>
+      </div>
+      <div class="card stack-card">
+        <div class="stack-icon">🧪</div>
+        <h3>pytest</h3>
+        <p>Testes automatizados</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ DevOps ═══════════════ -->
+<section id="devops">
+  <div class="container">
+    <div class="section-header">
+      <p class="eyebrow">CI/CD</p>
+      <h2 class="display-lg">Pipeline automatizada.</h2>
+    </div>
+
+    <div class="card card-lg pipeline-wrapper">
+      <svg viewBox="0 0 960 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="min-width:700px;width:100%">
+        <defs>
+          <linearGradient id="gLint" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#007cf0"/><stop offset="100%" stop-color="#00dfd8"/></linearGradient>
+          <linearGradient id="gTest" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#00dfd8"/><stop offset="100%" stop-color="#007cf0"/></linearGradient>
+          <linearGradient id="gCov" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#7928ca"/><stop offset="100%" stop-color="#ff0080"/></linearGradient>
+          <linearGradient id="gDocker" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ff0080"/><stop offset="100%" stop-color="#7928ca"/></linearGradient>
+          <linearGradient id="gTF" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ff4d4d"/><stop offset="100%" stop-color="#f9cb28"/></linearGradient>
+          <linearGradient id="gK8s" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#f9cb28"/><stop offset="100%" stop-color="#ff4d4d"/></linearGradient>
+          <linearGradient id="gMig" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#007cf0"/><stop offset="100%" stop-color="#7928ca"/></linearGradient>
+          <marker id="pipeArrow" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#ebebeb"/></marker>
+        </defs>
+
+        <!-- Lint -->
+        <rect x="10" y="20" width="110" height="40" rx="8" fill="none" stroke="#ebebeb" stroke-width="1.5"/>
+        <text x="65" y="45" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="500" fill="#171717">Lint</text>
+
+        <line x1="120" y1="40" x2="145" y2="40" stroke="#ebebeb" stroke-width="1.2" marker-end="url(#pipeArrow)"/>
+
+        <!-- Testes -->
+        <rect x="145" y="20" width="110" height="40" rx="8" fill="none" stroke="#ebebeb" stroke-width="1.5"/>
+        <text x="200" y="45" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="500" fill="#171717">Testes</text>
+
+        <line x1="255" y1="40" x2="280" y2="40" stroke="#ebebeb" stroke-width="1.2" marker-end="url(#pipeArrow)"/>
+
+        <!-- Cobertura -->
+        <rect x="280" y="20" width="110" height="40" rx="8" fill="none" stroke="#ebebeb" stroke-width="1.5"/>
+        <text x="335" y="45" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="500" fill="#171717">Cobertura</text>
+
+        <line x1="390" y1="40" x2="415" y2="40" stroke="#ebebeb" stroke-width="1.2" marker-end="url(#pipeArrow)"/>
+
+        <!-- Docker -->
+        <rect x="415" y="20" width="110" height="40" rx="8" fill="none" stroke="#ebebeb" stroke-width="1.5"/>
+        <text x="470" y="45" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="500" fill="#171717">Docker</text>
+
+        <line x1="525" y1="40" x2="550" y2="40" stroke="#ebebeb" stroke-width="1.2" marker-end="url(#pipeArrow)"/>
+
+        <!-- Terraform -->
+        <rect x="550" y="20" width="110" height="40" rx="8" fill="none" stroke="#ebebeb" stroke-width="1.5"/>
+        <text x="605" y="45" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="500" fill="#171717">Terraform</text>
+
+        <line x1="660" y1="40" x2="685" y2="40" stroke="#ebebeb" stroke-width="1.2" marker-end="url(#pipeArrow)"/>
+
+        <!-- Deploy K8s -->
+        <rect x="685" y="20" width="110" height="40" rx="8" fill="none" stroke="#ebebeb" stroke-width="1.5"/>
+        <text x="740" y="45" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="500" fill="#171717">Deploy K8s</text>
+
+        <line x1="795" y1="40" x2="820" y2="40" stroke="#ebebeb" stroke-width="1.2" marker-end="url(#pipeArrow)"/>
+
+        <!-- Migrate -->
+        <rect x="820" y="20" width="110" height="40" rx="8" fill="none" stroke="#ebebeb" stroke-width="1.5"/>
+        <text x="875" y="45" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="500" fill="#171717">Migrate</text>
+      </svg>
+    </div>
+    <p class="pipeline-triggers">Triggers: <code>push main/tech_challenge</code> · <code>pull requests</code></p>
+  </div>
+</section>
+
+<!-- ═══════════════ Footer ═══════════════ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-left">Oficina Mecânica API · Fase 2 · FIAP Pós Tech em Arquitetura de Software</div>
+    <div class="footer-right">Jonas Contiero</div>
+  </div>
+</footer>
+
+<!-- ═══════════════ JS: Active nav on scroll ═══════════════ -->
+<script>
+(function(){
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  const navH = 64;
+
+  function setActive(){
+    let current = '';
+    sections.forEach(s => {
+      const top = s.offsetTop - navH - 40;
+      if(window.scrollY >= top) current = s.id;
+    });
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  }
+
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if(!ticking){
+      window.requestAnimationFrame(() => { setActive(); ticking = false; });
+      ticking = true;
+    }
+  });
+  setActive();
+})();
+</script>
+</body>
+</html>
