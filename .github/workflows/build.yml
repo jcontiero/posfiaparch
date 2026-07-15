@@ -244,7 +244,9 @@ jobs:
           cp kubeconfig ~/.kube/config
 
       - name: Aplicar manifestos Kubernetes
-        run: kubectl apply -f ../k8s/
+        run: |
+          sed -i "s|image: oficina-api:v0.2.0|image: ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest|g" ../k8s/*.yaml
+          kubectl apply -f ../k8s/
 
       - name: Aguardar rollout da API
         run: kubectl rollout status deployment/oficina-api -n oficina-api --timeout=180s
