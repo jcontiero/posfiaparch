@@ -255,6 +255,13 @@ jobs:
         run: kubectl apply -f ../k8s/job-migrate.yaml
 
       - name: Aguardar conclusão do Job
-        run: kubectl wait --for=condition=complete job/oficina-api-migrate -n oficina-api --timeout=180s
+        run: |
+          kubectl wait --for=condition=complete job/oficina-api-migrate -n oficina-api --timeout=180s || (
+            echo "::error::Migration failed! Fetching logs..."
+            kubectl get pods -n oficina-api
+            kubectl describe job/oficina-api-migrate -n oficina-api
+            kubectl logs job/oficina-api-migrate -n oficina-api || true
+            exit 1
+          )
 
 
